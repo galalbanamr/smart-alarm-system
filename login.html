@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Standing Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="auth-styles.css">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="auth-title">
+                    <span class="auth-icon">👁️</span>
+                    Standing Detection
+                </h1>
+                <p class="auth-subtitle">Choose your dashboard</p>
+            </div>
+
+            <!-- Dashboard Selection -->
+            <div class="dashboard-selection">
+                <div class="dashboard-option" id="parentDashboardOption">
+                    <div class="dashboard-icon">👨‍👩‍👧</div>
+                    <h3>Parent Dashboard</h3>
+                    <p>Monitor your children's activity</p>
+                    <button class="dashboard-btn" onclick="showParentLogin()">Login as Parent</button>
+                </div>
+
+                <div class="dashboard-option" id="childDashboardOption">
+                    <div class="dashboard-icon">👶</div>
+                    <h3>Child Dashboard</h3>
+                    <p>Standing detection for children</p>
+                    <button class="dashboard-btn" onclick="showChildLogin()">Login as Child</button>
+                </div>
+            </div>
+
+            <!-- Parent Login Form -->
+            <form id="parentLoginForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="parentUsername">Username</label>
+                    <input type="text" id="parentUsername" name="username" required autocomplete="username">
+                </div>
+
+                <div class="form-group">
+                    <label for="parentPassword">Password</label>
+                    <input type="password" id="parentPassword" name="password" required autocomplete="current-password">
+                </div>
+
+                <div id="parentErrorMessage" class="error-message"></div>
+
+                <button type="submit" class="auth-button">
+                    <span>Login as Parent</span>
+                    <span class="button-icon">→</span>
+                </button>
+                <button type="button" class="back-btn" onclick="showDashboards()">← Back</button>
+            </form>
+
+            <!-- Child Login Form -->
+            <form id="childLoginForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="childName">Child Name</label>
+                    <input type="text" id="childName" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="childPassword">Password</label>
+                    <input type="password" id="childPassword" name="password" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="fatherName">Father's Name</label>
+                    <input type="text" id="fatherName" name="fatherName" required placeholder="Enter your father's full name">
+                </div>
+
+                <div id="childErrorMessage" class="error-message"></div>
+
+                <button type="submit" class="auth-button">
+                    <span>Login as Child</span>
+                    <span class="button-icon">→</span>
+                </button>
+                <button type="button" class="back-btn" onclick="showDashboards()">← Back</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Don't have an account? <a href="register.html" class="auth-link">Create one</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Make functions globally available
+        window.showDashboards = function() {
+            const dashboardSelection = document.querySelector('.dashboard-selection');
+            if (dashboardSelection) {
+                dashboardSelection.style.display = 'flex';
+            }
+            const parentForm = document.getElementById('parentLoginForm');
+            const childForm = document.getElementById('childLoginForm');
+            if (parentForm) parentForm.style.display = 'none';
+            if (childForm) childForm.style.display = 'none';
+        };
+
+        window.showParentLogin = function() {
+            const dashboardSelection = document.querySelector('.dashboard-selection');
+            if (dashboardSelection) {
+                dashboardSelection.style.display = 'none';
+            }
+            const parentForm = document.getElementById('parentLoginForm');
+            const childForm = document.getElementById('childLoginForm');
+            if (parentForm) parentForm.style.display = 'flex';
+            if (childForm) childForm.style.display = 'none';
+        };
+
+        window.showChildLogin = function() {
+            const dashboardSelection = document.querySelector('.dashboard-selection');
+            if (dashboardSelection) {
+                dashboardSelection.style.display = 'none';
+            }
+            const parentForm = document.getElementById('parentLoginForm');
+            const childForm = document.getElementById('childLoginForm');
+            if (parentForm) parentForm.style.display = 'none';
+            if (childForm) childForm.style.display = 'flex';
+        };
+    </script>
+
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/auth-pages.js"></script>
+</body>
+</html>
