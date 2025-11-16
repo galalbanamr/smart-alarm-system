@@ -4,6 +4,7 @@
  */
 
 import { AuthManager } from './auth.js';
+import { translationManager } from './translations.js';
 
 const authManager = new AuthManager();
 
@@ -27,13 +28,13 @@ if (document.getElementById('parentLoginForm') || document.getElementById('child
             
             if (result.success) {
                 if (result.user.role !== 'parent') {
-                    errorDiv.textContent = 'This account is not a parent account';
+                    errorDiv.textContent = translationManager.t('error');
                     errorDiv.classList.add('show');
                     return;
                 }
                 redirectToDashboard('parent');
             } else {
-                errorDiv.textContent = result.message;
+                errorDiv.textContent = result.message || translationManager.t('error');
                 errorDiv.classList.add('show');
             }
         });
@@ -53,7 +54,7 @@ if (document.getElementById('parentLoginForm') || document.getElementById('child
             errorDiv.textContent = '';
             
             if (!name || !password || !fatherName) {
-                errorDiv.textContent = 'Please fill in all fields';
+                errorDiv.textContent = translationManager.t('error');
                 errorDiv.classList.add('show');
                 return;
             }
@@ -119,25 +120,25 @@ window.addEventListener('DOMContentLoaded', () => {
         
         // Validation
         if (!name || name.length === 0) {
-            errorDiv.textContent = 'Please enter your full name';
+            errorDiv.textContent = translationManager.t('error');
             errorDiv.classList.add('show');
             return;
         }
         
         if (username.length < 3) {
-            errorDiv.textContent = 'Username must be at least 3 characters';
+            errorDiv.textContent = translationManager.t('error');
             errorDiv.classList.add('show');
             return;
         }
         
         if (password.length < 6) {
-            errorDiv.textContent = 'Password must be at least 6 characters';
+            errorDiv.textContent = translationManager.t('error');
             errorDiv.classList.add('show');
             return;
         }
 
         if (role === 'child' && !fatherName) {
-            errorDiv.textContent = 'Please enter your father\'s name';
+            errorDiv.textContent = translationManager.t('error');
             errorDiv.classList.add('show');
             return;
         }
@@ -146,7 +147,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const result = authManager.register(username, password, role, name, fatherName);
             
             if (result.success) {
-                successDiv.textContent = `Account created successfully! Redirecting to login...`;
+                successDiv.textContent = translationManager.t('success');
                 successDiv.classList.add('show');
                 
                 // Redirect to login after 2 seconds
@@ -154,12 +155,12 @@ window.addEventListener('DOMContentLoaded', () => {
                     window.location.href = 'login.html';
                 }, 2000);
             } else {
-                errorDiv.textContent = result.message || 'Registration failed. Please try again.';
+                errorDiv.textContent = result.message || translationManager.t('error');
                 errorDiv.classList.add('show');
             }
         } catch (error) {
             console.error('Registration error:', error);
-            errorDiv.textContent = 'An error occurred. Please try again.';
+            errorDiv.textContent = translationManager.t('error');
             errorDiv.classList.add('show');
         }
     });

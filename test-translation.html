@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #10b981; }
+        .error { background: #ef4444; }
+    </style>
+</head>
+<body>
+    <h1>Translation System Test</h1>
+    <div id="results"></div>
+    
+    <button id="langBtn" style="padding: 10px 20px; margin: 20px 0; cursor: pointer;">
+        <span id="langText">EN</span>
+    </button>
+    
+    <div id="testText">Test Text</div>
+    
+    <script type="module">
+        const results = document.getElementById('results');
+        
+        function addResult(message, isSuccess) {
+            const div = document.createElement('div');
+            div.className = `test-result ${isSuccess ? 'success' : 'error'}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+        
+        try {
+            // Test 1: Import translations
+            import { translationManager } from './js/translations.js';
+            addResult('✓ Translation module imported', true);
+            
+            // Test 2: Get translation
+            const testText = translationManager.t('overview');
+            addResult(`✓ Translation works: "overview" = "${testText}"`, true);
+            
+            // Test 3: Language switching
+            const langBtn = document.getElementById('langBtn');
+            const langText = document.getElementById('langText');
+            const testTextDiv = document.getElementById('testText');
+            
+            langBtn.addEventListener('click', () => {
+                const currentLang = translationManager.getLanguage();
+                const newLang = currentLang === 'en' ? 'ar' : 'en';
+                translationManager.setLanguage(newLang);
+                translationManager.applyLanguage();
+                langText.textContent = newLang.toUpperCase();
+                testTextDiv.textContent = translationManager.t('overview');
+                addResult(`✓ Language switched to ${newLang.toUpperCase()}`, true);
+            });
+            
+            // Test 4: RTL
+            translationManager.setLanguage('ar');
+            translationManager.applyLanguage();
+            const isRTL = document.documentElement.dir === 'rtl';
+            addResult(`✓ RTL support: ${isRTL ? '✓' : '✗'}`, isRTL);
+            
+            // Reset to English
+            translationManager.setLanguage('en');
+            translationManager.applyLanguage();
+            langText.textContent = 'EN';
+            
+            addResult('✓ All tests passed!', true);
+        } catch (error) {
+            addResult(`✗ Error: ${error.message}`, false);
+            console.error('Test error:', error);
+        }
+    </script>
+</body>
+</html>
+

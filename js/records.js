@@ -148,6 +148,7 @@ export class RecordsManager {
      */
     addCheckRecord(childId, parentId, checkType, passed) {
         const records = this.getAllRecords();
+        const now = new Date().toISOString();
         const record = {
             id: `check_${Date.now()}_${parentId}`,
             childId,
@@ -155,7 +156,8 @@ export class RecordsManager {
             type: 'check',
             checkType, // 'standing' or 'clothing'
             passed,
-            timestamp: new Date().toISOString(),
+            timestamp: now,
+            checkTime: now, // Time when this specific check was completed
             viewed: false
         };
 
@@ -175,8 +177,9 @@ export class RecordsManager {
     /**
      * Add a complete record (both checks done)
      */
-    addCompleteRecord(childId, parentId, standingComplete, clothingComplete) {
+    addCompleteRecord(childId, parentId, standingComplete, clothingComplete, standingTime = null, uniformTime = null) {
         const records = this.getAllRecords();
+        const now = new Date().toISOString();
         const record = {
             id: `complete_${Date.now()}_${parentId}`,
             childId,
@@ -184,7 +187,9 @@ export class RecordsManager {
             type: 'complete',
             standingComplete,
             clothingComplete,
-            timestamp: new Date().toISOString(),
+            timestamp: now,
+            standingTime: standingTime || (standingComplete ? now : null),
+            uniformTime: uniformTime || (clothingComplete ? now : null),
             viewed: false
         };
 
@@ -248,5 +253,99 @@ export class RecordsManager {
             clothingComplete: latestRecord.clothingComplete || false,
             timestamp: latestRecord.timestamp
         };
+    }
+
+    /**
+     * Get records grouped by date for calendar view
+     */
+    getRecordsByDate(parentId, allUsers = []) {
+        const records = this.getParentRecords(parentId);
+        
+        // Group records by date
+        const recordsByDate = {};
+        
+        records.forEach(record => {
+            if (!record || !record.timestamp) return;
+            
+            const date = new Date(record.timestamp);
+            if (isNaN(date.getTime())) return; // Skip invalid dates
+            
+            const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+            
+            if (!recordsByDate[dateKey]) {
+                recordsByDate[dateKey] = [];
+            }
+            
+            // Get child name
+            const child = allUsers.find(u => u && u.id === record.childId);
+            const childName = child ? child.name : 'Unknown';
+            
+            // Extract times
+            let standingTime = null;
+            let uniformTime = null;
+            
+            if (record.type === 'complete') {
+                // For complete records, use the stored times or fallback to timestamp
+                standingTime = record.standingTime || (record.standingComplete ? record.timestamp : null);
+                uniformTime = record.uniformTime || (record.clothingComplete ? record.timestamp : null);
+            } else if (record.type === 'check') {
+                // For individual check records, extract the time
+                if (record.checkType === 'standing') {
+                    standingTime = record.checkTime || record.timestamp;
+                } else if (record.checkType === 'clothing') {
+                    uniformTime = record.checkTime || record.timestamp;
+                }
+            }
+            
+            recordsByDate[dateKey].push({
+                childId: record.childId,
+                childName,
+                standingTime,
+                uniformTime,
+                timestamp: record.timestamp
+            });
+        });
+        
+        return recordsByDate;
+    }
+
+    /**
+     * Get records grouped by child and date
+     */
+    getRecordsByChildAndDate(parentId, allUsers = []) {
+        const recordsByDate = this.getRecordsByDate(parentId, allUsers);
+        const result = {};
+        
+        Object.keys(recordsByDate).forEach(date => {
+            recordsByDate[date].forEach(record => {
+                if (!result[record.childId]) {
+                    result[record.childId] = {};
+                }
+                if (!result[record.childId][date]) {
+                    result[record.childId][date] = {
+                        childName: record.childName,
+                        standingTime: null,
+                        uniformTime: null
+                    };
+                }
+                
+                // Use the earliest standing time and uniform time for each day
+                if (record.standingTime) {
+                    if (!result[record.childId][date].standingTime || 
+                        new Date(record.standingTime) < new Date(result[record.childId][date].standingTime)) {
+                        result[record.childId][date].standingTime = record.standingTime;
+                    }
+                }
+                
+                if (record.uniformTime) {
+                    if (!result[record.childId][date].uniformTime || 
+                        new Date(record.uniformTime) < new Date(result[record.childId][date].uniformTime)) {
+                        result[record.childId][date].uniformTime = record.uniformTime;
+                    }
+                }
+            });
+        });
+        
+        return result;
     }
 }

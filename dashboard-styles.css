@@ -645,6 +645,226 @@
     font-size: 0.95rem;
 }
 
+/* Calendar Styles */
+.calendar-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.current-month {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    min-width: 200px;
+    text-align: center;
+}
+
+.calendar-nav-btn {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #34d399;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.calendar-nav-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.5);
+}
+
+.calendar-container {
+    margin-top: 24px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    padding: 8px;
+    text-transform: uppercase;
+}
+
+.calendar-day {
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: all 0.3s ease;
+}
+
+.calendar-day:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.calendar-day.today {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.calendar-day.empty {
+    background: transparent;
+    border: none;
+    min-height: auto;
+}
+
+.calendar-day-number {
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+}
+
+.calendar-day.today .calendar-day-number {
+    color: #34d399;
+    font-weight: 700;
+}
+
+.calendar-child-entry {
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 6px;
+    padding: 6px;
+    margin-top: 4px;
+    border-left: 2px solid #34d399;
+}
+
+.calendar-child-name {
+    font-weight: 600;
+    color: #34d399;
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+}
+
+.calendar-time {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+.calendar-time.standing-time {
+    color: #34d399;
+}
+
+.calendar-time.uniform-time {
+    color: #60a5fa;
+}
+
+.calendar-empty-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    margin-top: 20px;
+}
+
+/* Language Switcher */
+.language-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+[dir="rtl"] .language-switcher {
+    right: auto;
+    left: 20px;
+}
+
+.lang-btn {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #34d399;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lang-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: rgba(16, 185, 129, 0.5);
+    transform: translateY(-2px);
+}
+
+#langIcon {
+    font-size: 1.2rem;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+}
+
+[dir="rtl"] .sidebar {
+    right: 0;
+    left: auto;
+    border-right: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[dir="rtl"] .main-content {
+    margin-left: 0;
+    margin-right: 280px;
+}
+
+[dir="rtl"] .header-content {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .nav-item {
+    border-left: none;
+    border-right: 3px solid transparent;
+}
+
+[dir="rtl"] .nav-item.active {
+    border-right-color: #10b981;
+}
+
+[dir="rtl"] .section-header {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .calendar-controls {
+    flex-direction: row-reverse;
+}
+
+/* Arabic Font */
+[dir="rtl"] body,
+[dir="rtl"] .dashboard-page,
+[dir="rtl"] .main-content {
+    font-family: 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .sidebar {

@@ -4,6 +4,7 @@
  */
 
 import { CONFIG } from './config.js';
+import { translationManager } from './translations.js';
 
 export class UIController {
     constructor() {
@@ -39,19 +40,19 @@ export class UIController {
                 // Show standing progress with timer
                 if (standingDuration > 0) {
                     this.statusIcon.textContent = '⏳';
-                    this.statusText.textContent = `Standing: ${standingDuration}/${CONFIG.CHECKS.standingDuration}s`;
-                    this.statusSubtext.textContent = 'Keep standing...';
+                    this.statusText.textContent = `${translationManager.t('standing')}: ${standingDuration}/${CONFIG.CHECKS.standingDuration}s`;
+                    this.statusSubtext.textContent = translationManager.t('keepStanding');
                 } else {
                     // Just started standing (duration will be 0 for first frame)
                     this.statusIcon.textContent = '⏳';
-                    this.statusText.textContent = 'Standing: 0/5s';
-                    this.statusSubtext.textContent = 'Starting timer...';
+                    this.statusText.textContent = `${translationManager.t('standing')}: 0/${CONFIG.CHECKS.standingDuration}s`;
+                    this.statusSubtext.textContent = translationManager.t('startingTimer');
                 }
             } else {
                 // Not standing yet
                 this.statusIcon.textContent = '❌';
-                this.statusText.textContent = 'Please Stand Up';
-                this.statusSubtext.textContent = 'Stand up to begin check';
+                this.statusText.textContent = translationManager.t('pleaseStandUp');
+                this.statusSubtext.textContent = translationManager.t('standUpToBegin');
             }
             
             // Update styling for standing phase
@@ -75,19 +76,19 @@ export class UIController {
                 // Show clothing progress with timer
                 if (clothingDuration > 0) {
                     this.statusIcon.textContent = '⏳';
-                    this.statusText.textContent = `Uniform Check: ${clothingDuration}/${CONFIG.CHECKS.clothingDuration}s`;
-                    this.statusSubtext.textContent = '✅ Standing Complete • Keep wearing uniform...';
+                    this.statusText.textContent = `${translationManager.t('uniformCheck')}: ${clothingDuration}/${CONFIG.CHECKS.clothingDuration}s`;
+                    this.statusSubtext.textContent = `✅ ${translationManager.t('standingComplete')} • ${translationManager.t('keepWearingUniform')}`;
                 } else {
                     // Just started wearing uniform (duration will be 0 for first frame)
                     this.statusIcon.textContent = '⏳';
-                    this.statusText.textContent = 'Uniform Check: 0/5s';
-                    this.statusSubtext.textContent = '✅ Standing Complete • Starting timer...';
+                    this.statusText.textContent = `${translationManager.t('uniformCheck')}: 0/${CONFIG.CHECKS.clothingDuration}s`;
+                    this.statusSubtext.textContent = `✅ ${translationManager.t('standingComplete')} • ${translationManager.t('startingTimer')}`;
                 }
             } else {
                 // Not wearing uniform yet
                 this.statusIcon.textContent = '⏳';
-                this.statusText.textContent = 'Please Wear Uniform';
-                this.statusSubtext.textContent = '✅ Standing Complete • Put on black top';
+                this.statusText.textContent = translationManager.t('pleaseWearUniform');
+                this.statusSubtext.textContent = `✅ ${translationManager.t('standingComplete')} • ${translationManager.t('putOnBlackTop')}`;
             }
             
             // Update styling for clothing phase
@@ -104,8 +105,8 @@ export class UIController {
      */
     showChecksComplete() {
         this.statusIcon.textContent = '✅';
-        this.statusText.textContent = 'All Checks Complete!';
-        this.statusSubtext.textContent = 'Standing ✓ | Uniform ✓ | Detection Stopped';
+        this.statusText.textContent = translationManager.t('allChecksCompleteTitle');
+        this.statusSubtext.textContent = `${translationManager.t('standingCheckmark')} | ${translationManager.t('uniformCheckmark')} | ${translationManager.t('detectionStopped')}`;
         this.statusText.className = 'status-text standing';
         this.statusCard.className = 'status-card standing';
         this.statusOverlay.className = 'status-overlay standing';
@@ -146,8 +147,8 @@ export class UIController {
      */
     showInitializing() {
         this.statusIcon.textContent = '⏳';
-        this.statusText.textContent = 'Initializing camera...';
-        this.statusSubtext.textContent = 'Please wait';
+        this.statusText.textContent = translationManager.t('initializingCamera');
+        this.statusSubtext.textContent = translationManager.t('pleaseWait');
         this.statusText.className = 'status-text';
         this.statusCard.className = 'status-card';
         this.statusOverlay.className = 'status-overlay standing';

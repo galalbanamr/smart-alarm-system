@@ -7,10 +7,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="dashboard-styles.css">
 </head>
 <body class="dashboard-page">
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+        <button class="lang-btn" id="langBtn" title="Switch Language">
+            <span id="langIcon">🌐</span>
+            <span id="langText">EN</span>
+        </button>
+    </div>
     <div class="dashboard-wrapper">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -38,6 +46,10 @@
                 <a href="#" class="nav-item" data-section="records">
                     <span class="nav-icon">📝</span>
                     <span class="nav-text">Records</span>
+                </a>
+                <a href="#" class="nav-item" data-section="calendar">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-text">Calendar</span>
                 </a>
             </nav>
             
@@ -145,6 +157,21 @@
                     <div class="empty-state">No records yet</div>
                 </div>
             </section>
+
+            <!-- Calendar Section -->
+            <section class="content-section" id="calendarSection" style="display: none;">
+                <div class="section-header">
+                    <h2>Waking Times Calendar</h2>
+                    <div class="calendar-controls">
+                        <button class="calendar-nav-btn" id="prevMonthBtn">◀ Previous</button>
+                        <span class="current-month" id="currentMonth"></span>
+                        <button class="calendar-nav-btn" id="nextMonthBtn">Next ▶</button>
+                    </div>
+                </div>
+                <div class="calendar-container" id="calendarContainer">
+                    <div class="empty-state">Loading calendar...</div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -159,13 +186,32 @@
             document.querySelector(`[data-section="${section}"]`).classList.add('active');
             
             // Update page title
-            const titles = {
-                overview: 'Overview',
-                children: 'My Children',
-                notifications: 'Notifications',
-                records: 'Records'
-            };
-            document.getElementById('pageTitle').textContent = titles[section];
+            // Titles will be updated by translation system
+            const titleElement = document.getElementById('pageTitle');
+            if (titleElement) {
+                // Will be updated by loadDashboard/updateNavigationTexts
+                setTimeout(() => {
+                    if (window.translationManager) {
+                        const titles = {
+                            overview: window.translationManager.t('overview'),
+                            children: window.translationManager.t('myChildren'),
+                            notifications: window.translationManager.t('notifications'),
+                            records: window.translationManager.t('records'),
+                            calendar: window.translationManager.t('calendar')
+                        };
+                        titleElement.textContent = titles[section] || section;
+                    }
+                }, 50);
+            }
+            
+            // Load calendar if switching to calendar section
+            if (section === 'calendar') {
+                setTimeout(() => {
+                    if (window.loadCalendar) {
+                        window.loadCalendar();
+                    }
+                }, 50);
+            }
         }
 
         // Add click handlers to nav items
@@ -180,6 +226,9 @@
         });
     </script>
 
+    <script type="module" src="js/translations.js"></script>
+    <script type="module" src="js/language-controller.js"></script>
+    <script type="module" src="js/translate-html.js"></script>
     <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/records.js"></script>
     <script type="module" src="js/parent-dashboard.js"></script>

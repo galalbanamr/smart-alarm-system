@@ -22,7 +22,8 @@ export class ClothingDetector {
         // Target color from config (default: black)
         this.TARGET_COLOR = CONFIG.CLOTHING_DETECTION.targetColor;
         this.COLOR_TOLERANCE = CONFIG.CLOTHING_DETECTION.colorTolerance;
-        this.MAX_BLACK_VALUE = CONFIG.CLOTHING_DETECTION.maxBlackValue || 80;
+        this.MAX_BLACK_VALUE = CONFIG.CLOTHING_DETECTION.maxBlackValue || 100;
+        this.DEBUG = CONFIG.CLOTHING_DETECTION.debug || false;
         
         // Create a hidden canvas for color sampling (to avoid conflicts with pose detector)
         this.sampleCanvas = document.createElement('canvas');
@@ -98,7 +99,7 @@ export class ClothingDetector {
         // Add center point
         points.push(chestCenter);
         
-        // Add points between shoulders
+        // Add points between shoulders (more points for better detection)
         points.push({
             x: (leftShoulder.x + chestCenter.x) / 2,
             y: (leftShoulder.y + chestCenter.y) / 2
@@ -108,10 +109,22 @@ export class ClothingDetector {
             y: (rightShoulder.y + chestCenter.y) / 2
         });
         
+        // Add points slightly above center (chest area)
+        points.push({
+            x: chestCenter.x,
+            y: chestCenter.y - 0.05 // Slightly above center
+        });
+        
         // Add points in upper torso area
         points.push({
             x: chestCenter.x,
             y: (chestCenter.y + leftHip.y) / 2
+        });
+        
+        // Add a few more points for better coverage
+        points.push({
+            x: (leftShoulder.x + rightShoulder.x) / 2,
+            y: (leftShoulder.y + rightShoulder.y) / 2
         });
         
         return points;
@@ -186,24 +199,42 @@ export class ClothingDetector {
                       avgColor.g <= this.MAX_BLACK_VALUE && 
                       avgColor.b <= this.MAX_BLACK_VALUE;
 
+        if (this.DEBUG) {
+            console.log('Color detection:', {
+                avgColor,
+                isDark,
+                maxBlackValue: this.MAX_BLACK_VALUE,
+                sampleColors: colors
+            });
+        }
+
         if (!isDark) {
             return false;
         }
 
-        // Additional check: Calculate distance from pure black
-        // This ensures we're detecting actual black/dark colors, not just dark shades
+        // Calculate distance from pure black
         const colorDistance = Math.sqrt(
             Math.pow(avgColor.r - this.TARGET_COLOR.r, 2) +
             Math.pow(avgColor.g - this.TARGET_COLOR.g, 2) +
             Math.pow(avgColor.b - this.TARGET_COLOR.b, 2)
         );
 
-        // Max distance for black (sqrt(80^2 + 80^2 + 80^2) ≈ 138)
-        // Use stricter tolerance for black detection
-        const maxDistance = 138 * this.COLOR_TOLERANCE;
+        // Max distance for black (sqrt(100^2 + 100^2 + 100^2) ≈ 173)
+        // Use tolerance for black detection
+        const maxDistance = 173 * this.COLOR_TOLERANCE;
+        
+        const matches = colorDistance <= maxDistance;
+
+        if (this.DEBUG) {
+            console.log('Color match result:', {
+                colorDistance,
+                maxDistance,
+                matches
+            });
+        }
         
         // Must be both dark AND close to black
-        return colorDistance <= maxDistance;
+        return matches;
     }
 
     /**

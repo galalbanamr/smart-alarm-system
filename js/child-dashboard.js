@@ -207,6 +207,10 @@ function onPoseResults(results, session, standingDetector, clothingDetector, uiC
     }
 }
 
+// Store check times globally
+let standingCheckTime = null;
+let uniformCheckTime = null;
+
 function notifyParent(session, checkType) {
     const parent = authManager.getParentForChild(session.userId);
     
@@ -214,8 +218,11 @@ function notifyParent(session, checkType) {
         return;
     }
 
+    const now = new Date().toISOString();
+
     // Create a record for the completed check
     if (checkType === 'standing') {
+        standingCheckTime = now;
         recordsManager.addCheckRecord(
             session.userId,
             parent.id,
@@ -223,6 +230,7 @@ function notifyParent(session, checkType) {
             true
         );
     } else if (checkType === 'clothing') {
+        uniformCheckTime = now;
         recordsManager.addCheckRecord(
             session.userId,
             parent.id,
@@ -231,13 +239,18 @@ function notifyParent(session, checkType) {
         );
     }
 
-    // If both checks are complete, create final record
+    // If both checks are complete, create final record with actual times
     if (standingCheckComplete && clothingCheckComplete) {
         recordsManager.addCompleteRecord(
             session.userId,
             parent.id,
             true, // standing check complete
-            true  // clothing check complete
+            true, // clothing check complete
+            standingCheckTime || new Date().toISOString(), // Use stored time or current
+            uniformCheckTime || new Date().toISOString()  // Use stored time or current
         );
+        // Reset times after creating complete record
+        standingCheckTime = null;
+        uniformCheckTime = null;
     }
 }

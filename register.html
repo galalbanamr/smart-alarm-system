@@ -7,10 +7,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="auth-styles.css">
 </head>
 <body class="auth-page">
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+        <button class="lang-btn" id="langBtn" title="Switch Language">
+            <span id="langIcon">🌐</span>
+            <span id="langText">EN</span>
+        </button>
+    </div>
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
@@ -67,6 +75,9 @@
         </div>
     </div>
 
+    <script type="module" src="js/translations.js"></script>
+    <script type="module" src="js/language-controller.js"></script>
+    <script type="module" src="js/translate-html.js"></script>
     <script type="module" src="js/auth.js"></script>
     <script type="module" src="js/auth-pages.js"></script>
 </body>

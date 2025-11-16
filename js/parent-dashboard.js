@@ -4,6 +4,7 @@
 
 import { AuthManager } from './auth.js';
 import { RecordsManager } from './records.js';
+import { translationManager } from './translations.js';
 
 const authManager = new AuthManager();
 const recordsManager = new RecordsManager();
@@ -54,13 +55,53 @@ window.addEventListener('DOMContentLoaded', () => {
     refreshInterval = setInterval(() => {
         loadDashboard();
     }, 5000);
+    
+    // Listen for language changes
+    window.addEventListener('languageChanged', () => {
+        loadDashboard();
+        updateNavigationTexts();
+    });
+    
+    // Initial translation update
+    updateNavigationTexts();
 });
+
+function updateNavigationTexts() {
+    // Update navigation items
+    const navItems = {
+        overview: translationManager.t('overview'),
+        children: translationManager.t('myChildren'),
+        notifications: translationManager.t('notifications'),
+        records: translationManager.t('records'),
+        calendar: translationManager.t('calendar')
+    };
+    
+    Object.keys(navItems).forEach(key => {
+        const navItem = document.querySelector(`[data-section="${key}"] .nav-text`);
+        if (navItem) {
+            navItem.textContent = navItems[key];
+        }
+    });
+    
+    // Update logout button
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn && logoutBtn.children[1]) {
+        logoutBtn.children[1].textContent = translationManager.t('logout');
+    }
+    
+    // Update refresh button
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) {
+        refreshBtn.title = translationManager.t('refresh');
+    }
+}
 
 function loadDashboard() {
     loadOverview();
     loadNotifications();
     loadChildren();
     loadRecords();
+    loadCalendar();
 }
 
 function loadOverview() {
@@ -83,6 +124,15 @@ function loadOverview() {
     document.getElementById('totalNotifications').textContent = unreadCount;
     document.getElementById('totalRecords').textContent = records.length;
     document.getElementById('standingToday').textContent = standingToday;
+    
+    // Update stat labels
+    const statLabels = document.querySelectorAll('.stat-label');
+    if (statLabels.length >= 4) {
+        statLabels[0].textContent = translationManager.t('totalChildren');
+        statLabels[1].textContent = translationManager.t('unreadNotifications');
+        statLabels[2].textContent = translationManager.t('totalRecords');
+        statLabels[3].textContent = translationManager.t('standingToday');
+    }
 }
 
 function loadNotifications() {
@@ -97,7 +147,7 @@ function loadNotifications() {
     }
 
     if (notifications.length === 0) {
-        notificationsList.innerHTML = '<div class="empty-state">No notifications yet</div>';
+        notificationsList.innerHTML = `<div class="empty-state">${translationManager.t('noNotifications')}</div>`;
         return;
     }
 
@@ -159,7 +209,7 @@ function loadChildren() {
     const childrenList = document.getElementById('childrenList');
 
     if (children.length === 0) {
-        childrenList.innerHTML = '<div class="empty-state">No children registered yet</div>';
+        childrenList.innerHTML = `<div class="empty-state">${translationManager.t('noChildrenRegistered')}</div>`;
         return;
     }
 
@@ -175,23 +225,23 @@ function loadChildren() {
                     <div class="child-avatar">${child.name.charAt(0).toUpperCase()}</div>
                     <div class="child-info">
                         <h3>${child.name}</h3>
-                        <p>@${child.username} • Last activity: ${lastActivity}</p>
+                        <p>@${child.username} • ${translationManager.t('lastActivity')}: ${lastActivity}</p>
                     </div>
                 </div>
-                <div class="child-checks">
+                    <div class="child-checks">
                     <div class="check-item ${checkStatus.standingComplete ? 'complete' : 'pending'}">
                         <span class="check-icon">${checkStatus.standingComplete ? '✅' : '⏳'}</span>
-                        <span class="check-label">Standing Up</span>
+                        <span class="check-label">${translationManager.t('standingUp')}</span>
                     </div>
                     <div class="check-item ${checkStatus.clothingComplete ? 'complete' : 'pending'}">
                         <span class="check-icon">${checkStatus.clothingComplete ? '✅' : '⏳'}</span>
-                        <span class="check-label">Wearing Uniform</span>
+                        <span class="check-label">${translationManager.t('wearingUniform')}</span>
                     </div>
                 </div>
                 <div class="child-stats">
                     <div class="child-stat">
                         <div class="child-stat-value">${childRecords.length}</div>
-                        <div class="child-stat-label">Total Records</div>
+                        <div class="child-stat-label">${translationManager.t('totalRecordsLabel')}</div>
                     </div>
                 </div>
             </div>
@@ -205,7 +255,7 @@ function loadRecords() {
     const allUsers = authManager.getAllUsers();
 
     if (records.length === 0) {
-        recordsList.innerHTML = '<div class="empty-state">No records yet</div>';
+        recordsList.innerHTML = `<div class="empty-state">${translationManager.t('noRecords')}</div>`;
         return;
     }
 
@@ -222,10 +272,10 @@ function loadRecords() {
                     ${record.isStanding ? '✅' : '❌'}
                 </div>
                 <div class="record-content">
-                    <div class="record-title">${record.isStanding ? 'Child Stood Up' : 'Child Not Standing'}</div>
+                    <div class="record-title">${record.isStanding ? translationManager.t('childStoodUpRecord') : translationManager.t('childNotStandingRecord')}</div>
                     <div class="record-details">
                         <span class="child-name">${childName}</span>
-                        ${duration ? `<span class="record-duration">Duration: ${duration}</span>` : ''}
+                        ${duration ? `<span class="record-duration">${translationManager.t('duration')}: ${duration}</span>` : ''}
                         <span class="record-time">${timeAgo}</span>
                     </div>
                 </div>
@@ -237,11 +287,150 @@ function loadRecords() {
 function getTimeAgo(date) {
     const seconds = Math.floor((new Date() - date) / 1000);
     
-    if (seconds < 60) return 'Just now';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    return `${Math.floor(seconds / 86400)}d ago`;
+    if (seconds < 60) return translationManager.t('justNow');
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}${translationManager.t('minutesAgo')}`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}${translationManager.t('hoursAgo')}`;
+    return `${Math.floor(seconds / 86400)}${translationManager.t('daysAgo')}`;
 }
+
+let currentCalendarDate = new Date();
+
+function loadCalendar() {
+    try {
+        const calendarContainer = document.getElementById('calendarContainer');
+        if (!calendarContainer) {
+            console.error('Calendar container not found');
+            return;
+        }
+
+        if (!currentParent) {
+            console.error('No current parent');
+            calendarContainer.innerHTML = '<div class="empty-state">Error: Not logged in</div>';
+            return;
+        }
+
+        const children = authManager.getChildrenForParent(currentParent.userId);
+        const allUsers = authManager.getAllUsers();
+        const recordsByChild = recordsManager.getRecordsByChildAndDate(currentParent.userId, allUsers);
+
+    // Get current month
+    const year = currentCalendarDate.getFullYear();
+    const month = currentCalendarDate.getMonth();
+
+    // Update month display
+    const monthKeys = ['january', 'february', 'march', 'april', 'may', 'june',
+        'july', 'august', 'september', 'october', 'november', 'december'];
+    const monthDisplay = document.getElementById('currentMonth');
+    if (monthDisplay) {
+        monthDisplay.textContent = `${translationManager.t(monthKeys[month])} ${year}`;
+    }
+
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    // Create calendar HTML
+    let calendarHTML = '<div class="calendar-grid">';
+    
+    // Day headers
+    const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    dayKeys.forEach(dayKey => {
+        calendarHTML += `<div class="calendar-day-header">${translationManager.t(dayKey)}</div>`;
+    });
+
+    // Empty cells for days before month starts
+    for (let i = 0; i < startingDayOfWeek; i++) {
+        calendarHTML += '<div class="calendar-day empty"></div>';
+    }
+
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
+        
+        calendarHTML += `<div class="calendar-day ${isToday ? 'today' : ''}">`;
+        calendarHTML += `<div class="calendar-day-number">${day}</div>`;
+        
+        // Show records for each child on this date
+        children.forEach(child => {
+            const childRecords = recordsByChild[child.id];
+            if (childRecords && childRecords[dateKey]) {
+                const record = childRecords[dateKey];
+                calendarHTML += `<div class="calendar-child-entry">`;
+                calendarHTML += `<div class="calendar-child-name">${record.childName}</div>`;
+                
+                if (record.standingTime) {
+                    const standingDate = new Date(record.standingTime);
+                    const standingTime = standingDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    calendarHTML += `<div class="calendar-time standing-time">⏰ ${translationManager.t('woke')}: ${standingTime}</div>`;
+                }
+                
+                if (record.uniformTime) {
+                    const uniformDate = new Date(record.uniformTime);
+                    const uniformTime = uniformDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                    calendarHTML += `<div class="calendar-time uniform-time">👕 ${translationManager.t('uniform')}: ${uniformTime}</div>`;
+                }
+                
+                calendarHTML += `</div>`;
+            }
+        });
+        
+        calendarHTML += '</div>';
+    }
+
+    // Empty cells for days after month ends
+    const totalCells = startingDayOfWeek + daysInMonth;
+    const remainingCells = 42 - totalCells; // 6 rows * 7 days
+    for (let i = 0; i < remainingCells && totalCells + i < 42; i++) {
+        calendarHTML += '<div class="calendar-day empty"></div>';
+    }
+
+    calendarHTML += '</div>';
+    calendarContainer.innerHTML = calendarHTML;
+    
+    // If no records, show a message below the calendar
+    if (Object.keys(recordsByChild).length === 0) {
+        const emptyMsg = document.createElement('div');
+        emptyMsg.className = 'calendar-empty-message';
+        emptyMsg.textContent = translationManager.t('noRecordsCalendar');
+        calendarContainer.appendChild(emptyMsg);
+    }
+
+    // Setup navigation buttons
+    const prevBtn = document.getElementById('prevMonthBtn');
+    const nextBtn = document.getElementById('nextMonthBtn');
+    
+    if (prevBtn) {
+        prevBtn.textContent = `◀ ${translationManager.t('previous')}`;
+        prevBtn.onclick = () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+            loadCalendar();
+        };
+    }
+    
+    if (nextBtn) {
+        nextBtn.textContent = `${translationManager.t('next')} ▶`;
+        nextBtn.onclick = () => {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+            loadCalendar();
+        };
+    }
+    } catch (error) {
+        console.error('Error loading calendar:', error);
+        const calendarContainer = document.getElementById('calendarContainer');
+        if (calendarContainer) {
+            calendarContainer.innerHTML = '<div class="empty-state">Error loading calendar. Please refresh the page.</div>';
+        }
+    }
+}
+
+// Make loadCalendar globally accessible
+window.loadCalendar = loadCalendar;
+
+// Make translationManager globally accessible
+window.translationManager = translationManager;
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
