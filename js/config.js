@@ -5,7 +5,17 @@
  */
 
 export const CONFIG = {
-    // Set to null to use device camera
+    // Camera source: 'laptop' or 'esp32'
+    CAMERA_SOURCE: 'esp32',
+    
+    // ESP32-CAM IP address - TODO: Update this with your ESP32-CAM's IP address
+    // You can find this in the Serial Monitor after uploading the firmware
+    ESP32_CAM_IP: '192.168.137.19', // Change this to your ESP32-CAM IP
+    
+    // ESP32-CAM stream endpoint
+    ESP32_CAM_STREAM_URL: null, // Will be constructed from ESP32_CAM_IP
+    
+    // Legacy: Set to null to use device camera
     // Example ESP32-CAM URLs:
     // - 'http://192.168.1.100:81/stream' (MJPEG stream)
     // - 'http://192.168.1.100:81/video' (H.264 stream)

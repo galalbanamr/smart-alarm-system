@@ -89,6 +89,47 @@ body::before {
     gap: 16px;
 }
 
+.camera-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.camera-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.camera-select {
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #34d399;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: inherit;
+    outline: none;
+}
+
+.camera-select:hover {
+    background: rgba(16, 185, 129, 0.3);
+    border-color: rgba(16, 185, 129, 0.6);
+}
+
+.camera-select:focus {
+    border-color: rgba(16, 185, 129, 0.8);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.camera-select option {
+    background: #0a0a0f;
+    color: #ffffff;
+}
+
 .user-name {
     color: rgba(255, 255, 255, 0.9);
     font-weight: 500;

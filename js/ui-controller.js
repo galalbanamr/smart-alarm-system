@@ -170,4 +170,22 @@ export class UIController {
         this.statusRing.className = 'status-ring not-standing';
         this.body.className = 'not-standing';
     }
+
+    /**
+     * Hide the status overlay (show video feed)
+     */
+    hideOverlay() {
+        if (this.statusOverlay) {
+            this.statusOverlay.style.display = 'none';
+        }
+    }
+
+    /**
+     * Show the status overlay
+     */
+    showOverlay() {
+        if (this.statusOverlay) {
+            this.statusOverlay.style.display = 'block';
+        }
+    }
 }

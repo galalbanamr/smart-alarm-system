@@ -31,7 +31,20 @@ window.addEventListener('DOMContentLoaded', () => {
         window.location.href = 'login.html';
     });
 
-    // Initialize standing detection
+    // Setup camera source selector FIRST (before initializing detection)
+    const cameraSourceSelect = document.getElementById('cameraSource');
+    if (cameraSourceSelect) {
+        // Set initial value from config
+        cameraSourceSelect.value = CONFIG.CAMERA_SOURCE || 'laptop';
+        
+        // Handle camera source changes
+        cameraSourceSelect.addEventListener('change', async (e) => {
+            const newSource = e.target.value;
+            await switchCameraSource(newSource);
+        });
+    }
+
+    // Initialize standing detection (after setting up selector)
     initStandingDetection(session);
 });
 
@@ -51,6 +64,10 @@ async function initStandingDetection(session) {
     const clothingDetector = new ClothingDetector();
     const uiController = new UIController();
 
+    // Get initial camera source from config or selector
+    const cameraSourceSelect = document.getElementById('cameraSource');
+    const initialSource = cameraSourceSelect ? cameraSourceSelect.value : (CONFIG.CAMERA_SOURCE || 'laptop');
+
     // Initialize pose detector
     const poseDetector = new PoseDetector(
         video,
@@ -60,11 +77,42 @@ async function initStandingDetection(session) {
 
     try {
         uiController.showInitializing();
-        await poseDetector.initialize();
+        await poseDetector.initialize(initialSource);
         app = { poseDetector, standingDetector, clothingDetector, uiController };
     } catch (error) {
         console.error('Initialization error:', error);
-        uiController.showError('Failed to initialize camera. Please check permissions.');
+        const errorMessage = initialSource === 'esp32' 
+            ? `Failed to connect to ESP32-CAM. Check IP address (${CONFIG.ESP32_CAM_IP}) and network connection.`
+            : 'Failed to initialize camera. Please check permissions.';
+        uiController.showError(errorMessage);
+    }
+}
+
+async function switchCameraSource(newSource) {
+    if (!app || !app.poseDetector) {
+        console.warn('Cannot switch camera: app not initialized');
+        return;
+    }
+
+    // Reset detection state when switching cameras
+    standingStartTime = null;
+    clothingStartTime = null;
+    lastStandingState = false;
+    lastClothingState = false;
+    standingCheckComplete = false;
+    clothingCheckComplete = false;
+    detectionStopped = false;
+
+    try {
+        app.uiController.showInitializing();
+        await app.poseDetector.switchCameraSource(newSource);
+        console.log(`Switched to ${newSource === 'esp32' ? 'ESP32-CAM' : 'Laptop Camera'}`);
+    } catch (error) {
+        console.error('Camera switch error:', error);
+        const errorMessage = newSource === 'esp32'
+            ? `Failed to connect to ESP32-CAM. Check IP address (${CONFIG.ESP32_CAM_IP}) and network connection.`
+            : 'Failed to initialize laptop camera. Please check permissions.';
+        app.uiController.showError(errorMessage);
     }
 }
 
