@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parent Dashboard - Standing Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="dashboard-styles.css">
+</head>
+<body class="dashboard-page">
+    <!-- Language Switcher -->
+    <div class="language-switcher">
+        <button class="lang-btn" id="langBtn" title="Switch Language">
+            <span id="langIcon">🌐</span>
+            <span id="langText">EN</span>
+        </button>
+    </div>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">👁️</span>
+                    <span class="logo-text">Standing Detection</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-section="overview">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Overview</span>
+                </a>
+                <a href="#" class="nav-item" data-section="children">
+                    <span class="nav-icon">👶</span>
+                    <span class="nav-text">My Children</span>
+                </a>
+                <a href="#" class="nav-item" data-section="notifications">
+                    <span class="nav-icon">🔔</span>
+                    <span class="nav-text">Notifications</span>
+                    <span class="nav-badge" id="sidebarNotificationBadge">0</span>
+                </a>
+                <a href="#" class="nav-item" data-section="records">
+                    <span class="nav-icon">📝</span>
+                    <span class="nav-text">Records</span>
+                </a>
+                <a href="#" class="nav-item" data-section="calendar">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-text">Calendar</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">P</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Parent</div>
+                        <div class="user-role">Parent Account</div>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <span>🚪</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <h1 class="page-title" id="pageTitle">Overview</h1>
+                <button class="refresh-btn" id="refreshBtn">🔄 Refresh</button>
+            </header>
+
+            <!-- Overview Section -->
+            <section class="content-section" id="overviewSection">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👶</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalChildren">0</div>
+                            <div class="stat-label">Total Children</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🔔</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalNotifications">0</div>
+                            <div class="stat-label">Unread Notifications</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📝</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="totalRecords">0</div>
+                            <div class="stat-label">Total Records</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <div class="stat-value" id="standingToday">0</div>
+                            <div class="stat-label">Standing Today</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h2>Quick Actions</h2>
+                    <div class="actions-grid">
+                        <button class="action-card" onclick="switchSection('children')">
+                            <span class="action-icon">👶</span>
+                            <span class="action-text">View Children</span>
+                        </button>
+                        <button class="action-card" onclick="switchSection('notifications')">
+                            <span class="action-icon">🔔</span>
+                            <span class="action-text">Check Notifications</span>
+                        </button>
+                        <button class="action-card" onclick="switchSection('records')">
+                            <span class="action-icon">📝</span>
+                            <span class="action-text">View Records</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Children Section -->
+            <section class="content-section" id="childrenSection" style="display: none;">
+                <div class="section-header">
+                    <h2>My Children</h2>
+                </div>
+                <div class="children-grid" id="childrenList">
+                    <div class="empty-state">No children registered yet</div>
+                </div>
+            </section>
+
+            <!-- Notifications Section -->
+            <section class="content-section" id="notificationsSection" style="display: none;">
+                <div class="section-header">
+                    <h2>Notifications</h2>
+                    <button class="mark-all-read-btn" id="markAllReadBtn">Mark all read</button>
+                </div>
+                <div class="notifications-container" id="notificationsList">
+                    <div class="empty-state">No notifications yet</div>
+                </div>
+            </section>
+
+            <!-- Records Section -->
+            <section class="content-section" id="recordsSection" style="display: none;">
+                <div class="section-header">
+                    <h2>Recent Records</h2>
+                </div>
+                <div class="records-container" id="recordsList">
+                    <div class="empty-state">No records yet</div>
+                </div>
+            </section>
+
+            <!-- Calendar Section -->
+            <section class="content-section" id="calendarSection" style="display: none;">
+                <div class="section-header">
+                    <h2>Waking Times Calendar</h2>
+                    <div class="calendar-controls">
+                        <button class="calendar-nav-btn" id="prevMonthBtn">◀ Previous</button>
+                        <span class="current-month" id="currentMonth"></span>
+                        <button class="calendar-nav-btn" id="nextMonthBtn">Next ▶</button>
+                    </div>
+                </div>
+                <div class="calendar-container" id="calendarContainer">
+                    <div class="empty-state">Loading calendar...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        function switchSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(section + 'Section').style.display = 'block';
+            document.querySelector(`[data-section="${section}"]`).classList.add('active');
+            
+            // Update page title
+            // Titles will be updated by translation system
+            const titleElement = document.getElementById('pageTitle');
+            if (titleElement) {
+                // Will be updated by loadDashboard/updateNavigationTexts
+                setTimeout(() => {
+                    if (window.translationManager) {
+                        const titles = {
+                            overview: window.translationManager.t('overview'),
+                            children: window.translationManager.t('myChildren'),
+                            notifications: window.translationManager.t('notifications'),
+                            records: window.translationManager.t('records'),
+                            calendar: window.translationManager.t('calendar')
+                        };
+                        titleElement.textContent = titles[section] || section;
+                    }
+                }, 50);
+            }
+            
+            // Load calendar if switching to calendar section
+            if (section === 'calendar') {
+                setTimeout(() => {
+                    if (window.loadCalendar) {
+                        window.loadCalendar();
+                    }
+                }, 50);
+            }
+        }
+
+        // Add click handlers to nav items
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const section = item.dataset.section;
+                    switchSection(section);
+                });
+            });
+        });
+    </script>
+
+    <script type="module" src="js/translations.js"></script>
+    <script type="module" src="js/language-controller.js"></script>
+    <script type="module" src="js/translate-html.js"></script>
+    <script type="module" src="js/auth.js"></script>
+    <script type="module" src="js/records.js"></script>
+    <script type="module" src="js/parent-dashboard.js"></script>
+</body>
+</html>

@@ -33,18 +33,23 @@ export class ClothingDetector {
     /**
      * Check if person is wearing the target color clothing on upper body
      * @param {Array} landmarks - MediaPipe pose landmarks
-     * @param {HTMLVideoElement} video - Video element to sample colors from
+     * @param {HTMLVideoElement|HTMLImageElement} source - Video or image element to sample colors from
      * @param {HTMLCanvasElement} canvas - Canvas element (not used, kept for compatibility)
      * @returns {boolean} - True if wearing target color, false otherwise
      */
-    isWearingTargetColor(landmarks, video, canvas) {
+    isWearingTargetColor(landmarks, source, canvas) {
         try {
-            if (!landmarks || landmarks.length < 29 || !video || !canvas) {
+            if (!landmarks || landmarks.length < 29 || !source || !canvas) {
                 return false;
             }
 
-            // Check if video is ready
-            if (video.readyState < 2) { // HAVE_CURRENT_DATA
+            // Check if source is ready (works for both video and image)
+            if (source.readyState !== undefined && source.readyState < 2) {
+                // Video element not ready
+                return false;
+            }
+            if (source.complete !== undefined && !source.complete) {
+                // Image element not loaded
                 return false;
             }
 
@@ -71,16 +76,16 @@ export class ClothingDetector {
             // Sample multiple points in the chest area
             const samplePoints = this.getSamplePoints(chestCenter, leftShoulder, rightShoulder, leftHip, rightHip);
             
-            // Get video dimensions
-            const videoWidth = video.videoWidth || video.clientWidth;
-            const videoHeight = video.videoHeight || video.clientHeight;
+            // Get source dimensions (works for both video and image)
+            const sourceWidth = source.videoWidth || source.naturalWidth || source.clientWidth;
+            const sourceHeight = source.videoHeight || source.naturalHeight || source.clientHeight;
             
-            if (videoWidth === 0 || videoHeight === 0) {
+            if (sourceWidth === 0 || sourceHeight === 0) {
                 return false;
             }
 
-            // Sample colors from video
-            const colors = this.sampleColorsFromVideo(video, canvas, samplePoints, videoWidth, videoHeight);
+            // Sample colors from source
+            const colors = this.sampleColorsFromVideo(source, canvas, samplePoints, sourceWidth, sourceHeight);
             
             // Check if colors match target color
             return this.checkColorMatch(colors);
@@ -131,35 +136,40 @@ export class ClothingDetector {
     }
 
     /**
-     * Sample colors from video at specified points
+     * Sample colors from video/image at specified points
      */
-    sampleColorsFromVideo(video, canvas, points, videoWidth, videoHeight) {
+    sampleColorsFromVideo(source, canvas, points, sourceWidth, sourceHeight) {
         try {
-            // Check if video is ready
-            if (video.readyState < 2) { // HAVE_CURRENT_DATA
+            // Check if source is ready (works for both video and image)
+            if (source.readyState !== undefined && source.readyState < 2) {
+                // Video element not ready
+                return [];
+            }
+            if (source.complete !== undefined && !source.complete) {
+                // Image element not loaded
                 return [];
             }
 
             const colors = [];
             
             // Use our own sample canvas to avoid conflicts with pose detector
-            // Set canvas size to match video
-            if (this.sampleCanvas.width !== videoWidth || this.sampleCanvas.height !== videoHeight) {
-                this.sampleCanvas.width = videoWidth;
-                this.sampleCanvas.height = videoHeight;
+            // Set canvas size to match source
+            if (this.sampleCanvas.width !== sourceWidth || this.sampleCanvas.height !== sourceHeight) {
+                this.sampleCanvas.width = sourceWidth;
+                this.sampleCanvas.height = sourceHeight;
             }
             
-            // Draw current video frame to our sample canvas
-            this.sampleCtx.drawImage(video, 0, 0, videoWidth, videoHeight);
+            // Draw current source frame to our sample canvas (works for both video and image)
+            this.sampleCtx.drawImage(source, 0, 0, sourceWidth, sourceHeight);
             
             // Sample colors at each point
             for (const point of points) {
                 // Convert normalized coordinates to pixel coordinates
-                const x = Math.floor(point.x * videoWidth);
-                const y = Math.floor(point.y * videoHeight);
+                const x = Math.floor(point.x * sourceWidth);
+                const y = Math.floor(point.y * sourceHeight);
                 
                 // Ensure coordinates are within bounds
-                if (x >= 0 && x < videoWidth && y >= 0 && y < videoHeight) {
+                if (x >= 0 && x < sourceWidth && y >= 0 && y < sourceHeight) {
                     try {
                         const imageData = this.sampleCtx.getImageData(x, y, 1, 1);
                         const [r, g, b] = imageData.data;

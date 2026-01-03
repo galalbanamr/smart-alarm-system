@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Standing Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script type="module">
+        import { AuthManager } from './js/auth.js';
+        const authManager = new AuthManager();
+        const session = authManager.getCurrentSession();
+        if (session) {
+            if (session.role === 'child') {
+                window.location.href = 'child-dashboard.html';
+            } else if (session.role === 'parent') {
+                window.location.href = 'parent-dashboard.html';
+            }
+        } else {
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">
+                <span class="title-icon">👁️</span>
+                Standing Detection
+            </h1>
+            <p class="subtitle">AI-Powered Posture Monitoring</p>
+        </header>
+        
+        <div class="video-wrapper">
+            <div class="video-border"></div>
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+            
+            <!-- Status Indicator Ring -->
+            <div class="status-ring" id="statusRing"></div>
+            
+            <!-- Status Overlay -->
+            <div class="status-overlay" id="statusOverlay">
+                <div class="status-card" id="statusCard">
+                    <div class="status-icon" id="statusIcon">⏳</div>
+                    <div class="status-text" id="statusText">Initializing...</div>
+                    <div class="status-subtext" id="statusSubtext">Please wait</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Decorative particles -->
+        <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+    </div>
+
+    <!-- MediaPipe Pose -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js" crossorigin="anonymous"></script>
+
+</body>
+</html>
+

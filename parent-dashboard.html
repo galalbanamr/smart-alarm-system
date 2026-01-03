@@ -1,236 +1,393 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parent Dashboard - Standing Detection</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="dashboard-styles.css">
-</head>
-<body class="dashboard-page">
-    <!-- Language Switcher -->
-    <div class="language-switcher">
-        <button class="lang-btn" id="langBtn" title="Switch Language">
-            <span id="langIcon">🌐</span>
-            <span id="langText">EN</span>
-        </button>
-    </div>
-    <div class="dashboard-wrapper">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <span class="logo-icon">👁️</span>
-                    <span class="logo-text">Standing Detection</span>
-                </div>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-item active" data-section="overview">
-                    <span class="nav-icon">📊</span>
-                    <span class="nav-text">Overview</span>
-                </a>
-                <a href="#" class="nav-item" data-section="children">
-                    <span class="nav-icon">👶</span>
-                    <span class="nav-text">My Children</span>
-                </a>
-                <a href="#" class="nav-item" data-section="notifications">
-                    <span class="nav-icon">🔔</span>
-                    <span class="nav-text">Notifications</span>
-                    <span class="nav-badge" id="sidebarNotificationBadge">0</span>
-                </a>
-                <a href="#" class="nav-item" data-section="records">
-                    <span class="nav-icon">📝</span>
-                    <span class="nav-text">Records</span>
-                </a>
-                <a href="#" class="nav-item" data-section="calendar">
-                    <span class="nav-icon">📅</span>
-                    <span class="nav-text">Calendar</span>
-                </a>
-            </nav>
-            
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar" id="userAvatar">P</div>
-                    <div class="user-details">
-                        <div class="user-name" id="userName">Parent</div>
-                        <div class="user-role">Parent Account</div>
-                    </div>
-                </div>
-                <button class="logout-btn" id="logoutBtn">
-                    <span>🚪</span>
-                    <span>Logout</span>
-                </button>
-            </div>
-        </aside>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <header class="main-header">
-                <h1 class="page-title" id="pageTitle">Overview</h1>
-                <button class="refresh-btn" id="refreshBtn">🔄 Refresh</button>
-            </header>
-
-            <!-- Overview Section -->
-            <section class="content-section" id="overviewSection">
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">👶</div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="totalChildren">0</div>
-                            <div class="stat-label">Total Children</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🔔</div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="totalNotifications">0</div>
-                            <div class="stat-label">Unread Notifications</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📝</div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="totalRecords">0</div>
-                            <div class="stat-label">Total Records</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">✅</div>
-                        <div class="stat-info">
-                            <div class="stat-value" id="standingToday">0</div>
-                            <div class="stat-label">Standing Today</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="quick-actions">
-                    <h2>Quick Actions</h2>
-                    <div class="actions-grid">
-                        <button class="action-card" onclick="switchSection('children')">
-                            <span class="action-icon">👶</span>
-                            <span class="action-text">View Children</span>
-                        </button>
-                        <button class="action-card" onclick="switchSection('notifications')">
-                            <span class="action-icon">🔔</span>
-                            <span class="action-text">Check Notifications</span>
-                        </button>
-                        <button class="action-card" onclick="switchSection('records')">
-                            <span class="action-icon">📝</span>
-                            <span class="action-text">View Records</span>
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Children Section -->
-            <section class="content-section" id="childrenSection" style="display: none;">
-                <div class="section-header">
-                    <h2>My Children</h2>
-                </div>
-                <div class="children-grid" id="childrenList">
-                    <div class="empty-state">No children registered yet</div>
-                </div>
-            </section>
-
-            <!-- Notifications Section -->
-            <section class="content-section" id="notificationsSection" style="display: none;">
-                <div class="section-header">
-                    <h2>Notifications</h2>
-                    <button class="mark-all-read-btn" id="markAllReadBtn">Mark all read</button>
-                </div>
-                <div class="notifications-container" id="notificationsList">
-                    <div class="empty-state">No notifications yet</div>
-                </div>
-            </section>
-
-            <!-- Records Section -->
-            <section class="content-section" id="recordsSection" style="display: none;">
-                <div class="section-header">
-                    <h2>Recent Records</h2>
-                </div>
-                <div class="records-container" id="recordsList">
-                    <div class="empty-state">No records yet</div>
-                </div>
-            </section>
-
-            <!-- Calendar Section -->
-            <section class="content-section" id="calendarSection" style="display: none;">
-                <div class="section-header">
-                    <h2>Waking Times Calendar</h2>
-                    <div class="calendar-controls">
-                        <button class="calendar-nav-btn" id="prevMonthBtn">◀ Previous</button>
-                        <span class="current-month" id="currentMonth"></span>
-                        <button class="calendar-nav-btn" id="nextMonthBtn">Next ▶</button>
-                    </div>
-                </div>
-                <div class="calendar-container" id="calendarContainer">
-                    <div class="empty-state">Loading calendar...</div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <script>
-        function switchSection(section) {
-            // Hide all sections
-            document.querySelectorAll('.content-section').forEach(s => s.style.display = 'none');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            // Show selected section
-            document.getElementById(section + 'Section').style.display = 'block';
-            document.querySelector(`[data-section="${section}"]`).classList.add('active');
-            
-            // Update page title
-            // Titles will be updated by translation system
-            const titleElement = document.getElementById('pageTitle');
-            if (titleElement) {
-                // Will be updated by loadDashboard/updateNavigationTexts
-                setTimeout(() => {
-                    if (window.translationManager) {
-                        const titles = {
-                            overview: window.translationManager.t('overview'),
-                            children: window.translationManager.t('myChildren'),
-                            notifications: window.translationManager.t('notifications'),
-                            records: window.translationManager.t('records'),
-                            calendar: window.translationManager.t('calendar')
-                        };
-                        titleElement.textContent = titles[section] || section;
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Parent Monitoring Center</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#10b77f",
+                        "primary-glow": "#10b77f66",
+                        "background-dark": "#0f0f1e",
+                        "surface-dark": "rgba(30, 41, 59, 0.4)",
+                        "glass": "rgba(255, 255, 255, 0.03)",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    backgroundImage: {
+                        "cyber-gradient": "radial-gradient(circle at 100% 0%, rgba(16, 183, 127, 0.15) 0%, rgba(15, 15, 30, 0) 50%), linear-gradient(180deg, #0f0f1e 0%, #0a0a16 100%)",
                     }
-                }, 50);
-            }
-            
-            // Load calendar if switching to calendar section
-            if (section === 'calendar') {
-                setTimeout(() => {
-                    if (window.loadCalendar) {
-                        window.loadCalendar();
-                    }
-                }, 50);
-            }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Utilities for Glassmorphism & Cyberpunk Feel */
+        .glass-panel {
+            background: rgba(17, 25, 40, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .neon-glow-text {
+            text-shadow: 0 0 10px rgba(16, 183, 127, 0.5);
         }
 
-        // Add click handlers to nav items
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const section = item.dataset.section;
-                    switchSection(section);
-                });
-            });
-        });
-    </script>
+        .neon-border {
+            box-shadow: 0 0 15px rgba(16, 183, 127, 0.15), inset 0 0 10px rgba(16, 183, 127, 0.05);
+            border-color: rgba(16, 183, 127, 0.3);
+        }
 
-    <script type="module" src="js/translations.js"></script>
-    <script type="module" src="js/language-controller.js"></script>
-    <script type="module" src="js/translate-html.js"></script>
-    <script type="module" src="js/auth.js"></script>
-    <script type="module" src="js/records.js"></script>
-    <script type="module" src="js/parent-dashboard.js"></script>
-</body>
-</html>
+        /* Scrollbar styling for modern feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="font-display bg-background-dark text-white antialiased overflow-hidden">
+<div class="flex h-screen w-full bg-cyber-gradient">
+<!-- SIDE NAVIGATION -->
+<aside class="w-72 hidden md:flex flex-col h-full border-r border-glass-border glass-panel z-20">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 rounded-xl bg-gradient-to-br from-primary to-emerald-900 flex items-center justify-center shadow-[0_0_15px_rgba(16,183,127,0.4)]">
+<span class="material-symbols-outlined text-white">smart_toy</span>
+</div>
+<div>
+<h1 class="font-bold text-lg tracking-wide text-white">Smart Routine</h1>
+<p class="text-xs text-gray-400">Parent Center v2.0</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 shadow-[0_0_10px_rgba(16,183,127,0.1)] transition-all" href="#">
+<span class="material-symbols-outlined fill-1">dashboard</span>
+<span class="font-medium text-sm">Overview</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">child_care</span>
+<span class="font-medium text-sm">Child Status</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-medium text-sm">Daily Records</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-medium text-sm">Settings</span>
+</a>
+</nav>
+<div class="p-4 mt-auto">
+<div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5">
+<div class="bg-center bg-cover rounded-full size-10 ring-2 ring-primary/30" data-alt="Portrait of Sarah, the parent" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBKKk8a4xT1p1reJT1Axtc1LsLO4dOs7dtwLMZv-VWNprZ_kg9U60rpVr4UcknDYJdz6BT7c-l_JBRHLSV55TfYRciVAZN5C8G0wRfBPAa1FECUUXyu86bhB93m_IbBmhyqynm-ZEiQi7aLlxwprJEt4jKiB7BDPbTrXTzyoza3gBn2VGpgdE9U69f_3GwrWBXNoRjs8DcYcfjwMv-WDq4rK9BuYuMh5r65UF7Fxcvn32qBl77qt7UTpSx-35qKz34AwY2AGU_etko');"></div>
+<div class="flex flex-col">
+<p class="text-sm font-medium text-white">Sarah Jenkins</p>
+<p class="text-xs text-emerald-400">Admin Access</p>
+</div>
+<button class="ml-auto text-gray-400 hover:text-white">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- MAIN CONTENT AREA -->
+<main class="flex-1 flex flex-col h-full overflow-hidden relative">
+<!-- Mobile Header -->
+<div class="md:hidden flex items-center justify-between p-4 glass-panel border-b border-glass-border">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">smart_toy</span>
+<span class="font-bold text-white">Smart Routine</span>
+</div>
+<button class="text-white">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<!-- Dashboard Header -->
+<header class="flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 pb-4">
+<div>
+<h2 class="text-3xl font-black text-white tracking-tight leading-none mb-1">Good Morning, Sarah</h2>
+<p class="text-gray-400 text-sm">Monitoring active morning routines • <span class="text-primary font-mono" id="current-time">07:42 AM</span></p>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/50 border border-emerald-500/30">
+<span class="relative flex h-2.5 w-2.5">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+</span>
+<span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">System Live</span>
+</div>
+<button class="size-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-8 pt-2">
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
+<!-- CHILD STATUS GRID (Takes up 2 columns on large screens) -->
+<div class="xl:col-span-2 flex flex-col gap-6">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-xl font-bold text-white">Child Status</h3>
+<button class="text-sm text-primary hover:text-emerald-300 transition-colors">View All Details</button>
+</div>
+<!-- Card 1: Leo (In Progress) -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden group hover:border-primary/40 transition-all duration-300">
+<!-- Background accent -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+<div class="flex flex-col md:flex-row gap-6 relative z-10">
+<!-- Profile Section -->
+<div class="flex items-center gap-4 md:border-r border-white/10 md:pr-6 md:min-w-[200px]">
+<div class="relative">
+<div class="size-16 rounded-full bg-center bg-cover border-2 border-primary/50 shadow-[0_0_15px_rgba(16,183,127,0.3)]" data-alt="Portrait of child Leo smiling" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDe-pu9ndICY4prop0GRtqtpMmTdbgVMCuZk_GPuwFXpynt0gCyE0jZ1tXb52srMVO-9AdBCjaBqcocEeUA1aIbA8sIbfaphoR8pfC77i0rkVgCPwoh4bl-kJlyGFrMGcU1Mv9R78vD48o-kAWKAoX878hxm_fCnWX_aITQDkvOauwF98UyNWlpKERrGdccb8-VB8fDAxY26Nefrp_O0NmNonk8lpBeYrBWmsVQTTu8Ab9dZIZdYuT3XwXmHkapBp8WodO8brmDkWo');"></div>
+<div class="absolute -bottom-1 -right-1 bg-gray-900 rounded-full border border-gray-700 p-1">
+<span class="material-symbols-outlined text-[16px] text-yellow-400">wb_sunny</span>
+</div>
+</div>
+<div>
+<h4 class="text-xl font-bold text-white">Leo</h4>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-500/10 text-yellow-500 border border-yellow-500/20">
+                                            In Progress
+                                        </span>
+</div>
+</div>
+<!-- Tasks Section -->
+<div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Task: Standing -->
+<div class="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between group-hover:shadow-[0_0_15px_rgba(16,183,127,0.1)] transition-all">
+<div class="flex items-center gap-3">
+<div class="bg-primary/20 p-2 rounded-full text-primary">
+<span class="material-symbols-outlined">accessibility_new</span>
+</div>
+<div>
+<p class="text-xs text-emerald-300 font-medium uppercase tracking-wider">Standing Check</p>
+<p class="text-sm font-bold text-white">Completed</p>
+<p class="text-[10px] text-emerald-400/70">07:15 AM</p>
+</div>
+</div>
+<div class="size-6 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(16,183,127,0.6)]">
+<span class="material-symbols-outlined text-white text-sm font-bold">check</span>
+</div>
+</div>
+<!-- Task: Uniform -->
+<div class="p-4 rounded-lg bg-white/5 border border-white/5 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="bg-white/10 p-2 rounded-full text-gray-400">
+<span class="material-symbols-outlined">checkroom</span>
+</div>
+<div>
+<p class="text-xs text-gray-500 font-medium uppercase tracking-wider">Uniform Check</p>
+<p class="text-sm font-bold text-gray-300">Pending</p>
+<p class="text-[10px] text-gray-600">Waiting...</p>
+</div>
+</div>
+<div class="size-6 rounded-full border-2 border-gray-600 flex items-center justify-center">
+<!-- Empty circle -->
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Mia (Complete) -->
+<div class="glass-panel rounded-xl p-6 relative overflow-hidden group hover:border-primary/40 transition-all duration-300">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+<div class="flex flex-col md:flex-row gap-6 relative z-10">
+<!-- Profile Section -->
+<div class="flex items-center gap-4 md:border-r border-white/10 md:pr-6 md:min-w-[200px]">
+<div class="relative">
+<div class="size-16 rounded-full bg-center bg-cover border-2 border-primary shadow-[0_0_15px_rgba(16,183,127,0.6)]" data-alt="Portrait of child Mia smiling" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8m6feKmc99Fwzc_E_K_sys53w3gCr9eZY8ogfKH9rHVM050SP5MgYiE3sB3j1yWtcpFkPrpJzz2gbecJJc6kVwBOpd4eXh6an40WSWeNWTlEI5zFmLETolFmUb5oroUfORlmKniZATW4vSNHKvs5WuVq6d5HHUbRO_2NgN1zcH4zALNUkIFywiHApgYZ6hPMzcejYLj1viPDEB7fkWxgF9sJ0MO0qj0UrhttGWtsVOeJZ5LebkW8-6dA10yIUDZZfsAnVbT2Rsls');"></div>
+<div class="absolute -bottom-1 -right-1 bg-gray-900 rounded-full border border-gray-700 p-1">
+<span class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
+</div>
+</div>
+<div>
+<h4 class="text-xl font-bold text-white">Mia</h4>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                            All Complete
+                                        </span>
+</div>
+</div>
+<!-- Tasks Section -->
+<div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+<!-- Task: Standing -->
+<div class="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between group-hover:shadow-[0_0_15px_rgba(16,183,127,0.1)] transition-all">
+<div class="flex items-center gap-3">
+<div class="bg-primary/20 p-2 rounded-full text-primary">
+<span class="material-symbols-outlined">accessibility_new</span>
+</div>
+<div>
+<p class="text-xs text-emerald-300 font-medium uppercase tracking-wider">Standing Check</p>
+<p class="text-sm font-bold text-white">Completed</p>
+<p class="text-[10px] text-emerald-400/70">07:05 AM</p>
+</div>
+</div>
+<div class="size-6 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(16,183,127,0.6)]">
+<span class="material-symbols-outlined text-white text-sm font-bold">check</span>
+</div>
+</div>
+<!-- Task: Uniform -->
+<div class="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between group-hover:shadow-[0_0_15px_rgba(16,183,127,0.1)] transition-all">
+<div class="flex items-center gap-3">
+<div class="bg-primary/20 p-2 rounded-full text-primary">
+<span class="material-symbols-outlined">checkroom</span>
+</div>
+<div>
+<p class="text-xs text-emerald-300 font-medium uppercase tracking-wider">Uniform Check</p>
+<p class="text-sm font-bold text-white">Verified</p>
+<p class="text-[10px] text-emerald-400/70">07:10 AM</p>
+</div>
+</div>
+<div class="size-6 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(16,183,127,0.6)]">
+<span class="material-symbols-outlined text-white text-sm font-bold">check</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Actions -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+<button class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">add_task</span>
+<span class="text-sm font-medium text-gray-400 group-hover:text-white">Add Task</span>
+</button>
+<button class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">videocam</span>
+<span class="text-sm font-medium text-gray-400 group-hover:text-white">Live View</span>
+</button>
+<button class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">mic</span>
+<span class="text-sm font-medium text-gray-400 group-hover:text-white">Broadcast</span>
+</button>
+<button class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">history_edu</span>
+<span class="text-sm font-medium text-gray-400 group-hover:text-white">Log Note</span>
+</button>
+</div>
+</div>
+<!-- SIDEBAR: FEED & STATS -->
+<div class="flex flex-col gap-6">
+<!-- Daily Stats Widget -->
+<div class="glass-panel rounded-xl p-6">
+<h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">monitoring</span>
+                                Daily Performance
+                            </h3>
+<div class="flex items-center justify-center py-4 relative">
+<!-- Chart Visual using conic-gradient -->
+<div class="size-40 rounded-full relative flex items-center justify-center" style="background: conic-gradient(#10b77f 85%, rgba(255,255,255,0.05) 0%); box-shadow: 0 0 20px rgba(16,183,127,0.2);">
+<div class="absolute inset-0 rounded-full blur-sm bg-primary/20 -z-10"></div>
+<div class="size-32 bg-[#111827] rounded-full flex flex-col items-center justify-center z-10 border border-white/5">
+<span class="text-3xl font-black text-white">85%</span>
+<span class="text-xs text-gray-400">Weekly Rate</span>
+</div>
+</div>
+</div>
+<div class="mt-4 grid grid-cols-2 gap-2 text-center">
+<div class="p-2 rounded bg-white/5">
+<p class="text-xs text-gray-400">Streak</p>
+<p class="text-lg font-bold text-primary">12 Days</p>
+</div>
+<div class="p-2 rounded bg-white/5">
+<p class="text-xs text-gray-400">Avg Time</p>
+<p class="text-lg font-bold text-white">14m</p>
+</div>
+</div>
+</div>
+<!-- Notification Feed -->
+<div class="glass-panel rounded-xl flex-1 flex flex-col overflow-hidden min-h-[300px]">
+<div class="p-4 border-b border-glass-border flex justify-between items-center">
+<h3 class="text-lg font-bold text-white">Live Feed</h3>
+<span class="size-2 bg-red-500 rounded-full animate-pulse"></span>
+</div>
+<div class="overflow-y-auto p-4 flex flex-col gap-4">
+<!-- Feed Item 1 -->
+<div class="flex gap-3 relative pb-4">
+<!-- Timeline line -->
+<div class="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-800"></div>
+<div class="relative z-10 size-6 rounded-full bg-primary/20 border border-primary flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px] text-primary">check</span>
+</div>
+<div>
+<p class="text-sm text-gray-200"><span class="font-bold text-white">Leo</span> completed standing check.</p>
+<p class="text-xs text-gray-500 mt-1">Today, 7:15 AM</p>
+</div>
+</div>
+<!-- Feed Item 2 -->
+<div class="flex gap-3 relative pb-4">
+<div class="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-800"></div>
+<div class="relative z-10 size-6 rounded-full bg-primary/20 border border-primary flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px] text-primary">checkroom</span>
+</div>
+<div>
+<p class="text-sm text-gray-200"><span class="font-bold text-white">Mia</span> verified uniform.</p>
+<p class="text-xs text-gray-500 mt-1">Today, 7:10 AM</p>
+</div>
+</div>
+<!-- Feed Item 3 -->
+<div class="flex gap-3 relative pb-4">
+<div class="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-800"></div>
+<div class="relative z-10 size-6 rounded-full bg-primary/20 border border-primary flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px] text-primary">accessibility_new</span>
+</div>
+<div>
+<p class="text-sm text-gray-200"><span class="font-bold text-white">Mia</span> completed standing check.</p>
+<p class="text-xs text-gray-500 mt-1">Today, 7:05 AM</p>
+</div>
+</div>
+<!-- Feed Item 4 -->
+<div class="flex gap-3 relative">
+<div class="relative z-10 size-6 rounded-full bg-yellow-500/20 border border-yellow-500 flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-[14px] text-yellow-500">light_mode</span>
+</div>
+<div>
+<p class="text-sm text-gray-200">Morning Routine Started.</p>
+<p class="text-xs text-gray-500 mt-1">Today, 6:45 AM</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script>
+        // Simple script to update time for "Live" feel
+        function updateTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            const strTime = hours + ':' + (minutes < 10 ? '0' + minutes : minutes) + ' ' + ampm;
+            document.getElementById('current-time').textContent = strTime;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+    </script>
+</body></html>

@@ -8,12 +8,18 @@ export const CONFIG = {
     // Camera source: 'laptop' or 'esp32'
     CAMERA_SOURCE: 'esp32',
     
-    // ESP32-CAM IP address - TODO: Update this with your ESP32-CAM's IP address
-    // You can find this in the Serial Monitor after uploading the firmware
-    ESP32_CAM_IP: '192.168.137.19', // Change this to your ESP32-CAM IP
+    // ESP32-CAM hostname/IP - Uses mDNS hostname for automatic IP discovery
+    // If mDNS doesn't work, you can use the IP address directly
+    ESP32_CAM_IP: 'esp32-cam.local', // mDNS hostname (automatic IP discovery)
+    // ESP32_CAM_IP: '192.168.137.141', // Fallback: Use IP if mDNS doesn't work
     
     // ESP32-CAM stream endpoint
     ESP32_CAM_STREAM_URL: null, // Will be constructed from ESP32_CAM_IP
+    
+    // ESP32 Buzzer hostname/IP - Uses mDNS hostname for automatic IP discovery
+    // If mDNS doesn't work, you can use the IP address directly
+    ESP32_BUZZER_IP: 'esp32-buzzer.local', // mDNS hostname (automatic IP discovery)
+    // ESP32_BUZZER_IP: '192.168.137.228', // Use IP address directly if mDNS doesn't work (check Serial Monitor for actual IP)
     
     // Legacy: Set to null to use device camera
     // Example ESP32-CAM URLs:

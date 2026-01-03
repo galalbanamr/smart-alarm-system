@@ -8,10 +8,12 @@ import { PoseDetector } from './pose-detector.js';
 import { StandingDetector } from './standing-detector.js';
 import { ClothingDetector } from './clothing-detector.js';
 import { UIController } from './ui-controller.js';
+import { BuzzerController } from './buzzer-controller.js';
 import { CONFIG } from './config.js';
 
 const authManager = new AuthManager();
 const recordsManager = new RecordsManager();
+const buzzerController = new BuzzerController();
 
 // Check authentication
 window.addEventListener('DOMContentLoaded', () => {
@@ -102,6 +104,7 @@ async function switchCameraSource(newSource) {
     standingCheckComplete = false;
     clothingCheckComplete = false;
     detectionStopped = false;
+    buzzerController.reset(); // Reset buzzer controller to allow sending off command again
 
     try {
         app.uiController.showInitializing();
@@ -128,11 +131,12 @@ function onPoseResults(results, session, standingDetector, clothingDetector, uiC
     }
 
     const now = Date.now();
-    const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     
-    // Check if video is ready before processing
-    if (!video || video.readyState < 2) {
+    // Get the current source element (video or ESP32 image)
+    const source = poseDetector.getCurrentSource();
+    if (!source) {
+        // Source not ready yet
         return;
     }
 
@@ -150,10 +154,10 @@ function onPoseResults(results, session, standingDetector, clothingDetector, uiC
     // Only check clothing AFTER standing check is complete
     if (standingCheckComplete) {
         try {
-            if (canvas && video.readyState >= 2) {
+            if (canvas && source) {
                 isWearingUniform = clothingDetector.isWearingTargetColor(
                     results.poseLandmarks,
-                    video,
+                    source,
                     canvas
                 );
             }
@@ -209,6 +213,23 @@ function onPoseResults(results, session, standingDetector, clothingDetector, uiC
             // The timer resets automatically if person stops standing (handled above)
             if (standingDuration >= CONFIG.CHECKS.standingDuration) {
                 standingCheckComplete = true;
+                // Turn off buzzer and LED IMMEDIATELY when standing is detected (after required duration)
+                console.log(`🎯 Standing check COMPLETE! (${standingDuration} seconds) - Turning off buzzer and LED NOW`);
+                
+                // Send the off command immediately - don't wait for promise
+                buzzerController.turnOff().then(success => {
+                    if (success) {
+                        console.log('✅ ESP32 Buzzer and LED turned OFF successfully - child is standing!');
+                    } else {
+                        console.warn('⚠️ Failed to turn off buzzer/LED - check:');
+                        console.warn('   1. ESP32 is powered on and connected to WiFi');
+                        console.warn('   2. ESP32 IP address is correct in config.js');
+                        console.warn('   3. Browser console for network errors');
+                    }
+                }).catch(error => {
+                    console.error('❌ Error sending buzzer off command:', error);
+                });
+                
                 // Notify parent that child has waked up (after 5 seconds)
                 notifyParent(session, 'standing');
             }

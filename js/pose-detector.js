@@ -4,6 +4,7 @@
  */
 
 import { CONFIG } from './config.js';
+import { MDNSResolver } from './mdns-resolver.js';
 
 export class PoseDetector {
     constructor(videoElement, canvasElement, onResults) {
@@ -134,8 +135,8 @@ export class PoseDetector {
                 this.esp32AbortController = null;
             }
 
-            // Build ESP32-CAM stream URL
-            const streamUrl = `http://${CONFIG.ESP32_CAM_IP}/stream`;
+            // Build ESP32-CAM stream URL (handles mDNS hostnames)
+            const streamUrl = MDNSResolver.getUrl(CONFIG.ESP32_CAM_IP, '/stream');
             console.log('Connecting to ESP32-CAM:', streamUrl);
 
             // Clear any existing video source completely
@@ -209,15 +210,18 @@ export class PoseDetector {
             };
 
             // Fetch and parse MJPEG stream properly
+            console.log('Attempting to fetch ESP32-CAM stream from:', streamUrl);
             fetch(streamUrl, { 
                 signal: this.esp32AbortController.signal,
-                cache: 'no-cache'
+                cache: 'no-cache',
+                mode: 'cors' // Explicitly allow CORS
             })
                 .then(response => {
+                    console.log('ESP32-CAM fetch response received:', response.status, response.statusText);
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
                     }
-                    console.log('ESP32-CAM stream fetch started');
+                    console.log('ESP32-CAM stream fetch started successfully');
                     
                     reader = response.body.getReader();
                     const decoder = new TextDecoder();
@@ -390,8 +394,19 @@ export class PoseDetector {
                     if (!resolved && error.name !== 'AbortError') {
                         resolved = true;
                         clearTimeout(timeout);
-                        console.error('ESP32-CAM fetch error:', error);
-                        reject(new Error(`Failed to connect to ESP32-CAM: ${error.message}`));
+                        console.error('ESP32-CAM fetch error details:', {
+                            error: error.message,
+                            name: error.name,
+                            stack: error.stack,
+                            url: streamUrl
+                        });
+                        
+                        // Provide helpful error message
+                        let errorMsg = `Failed to connect to ESP32-CAM: ${error.message}`;
+                        if (CONFIG.ESP32_CAM_IP.endsWith('.local')) {
+                            errorMsg += '\n\nTip: If mDNS (.local) doesn\'t work, try using the IP address directly in config.js';
+                        }
+                        reject(new Error(errorMsg));
                     }
                 });
         });
@@ -534,6 +549,26 @@ export class PoseDetector {
         } catch (error) {
             console.error(`Failed to switch to ${source}:`, error);
             throw error;
+        }
+    }
+
+    /**
+     * Get the current source element (video or image) for detection
+     * @returns {HTMLVideoElement|HTMLImageElement|null} - The current source element
+     */
+    getCurrentSource() {
+        if (this.currentSource === 'esp32') {
+            // Return ESP32 stream image if available
+            if (this.esp32StreamImg && this.esp32StreamImg.complete && this.esp32StreamImg.naturalWidth > 0) {
+                return this.esp32StreamImg;
+            }
+            return null;
+        } else {
+            // Return video element if ready
+            if (this.video && this.video.readyState >= this.video.HAVE_CURRENT_DATA && this.video.videoWidth > 0) {
+                return this.video;
+            }
+            return null;
         }
     }
 

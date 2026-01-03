@@ -17,6 +17,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <WiFiClient.h>
+#include <ESPmDNS.h>
 
 // ============================================================================
 // CONFIGURATION - TODO: Change these values for your network
@@ -75,12 +76,23 @@ void setup() {
   
   // Setup HTTP server routes
   server.on("/", handleRoot);
-  server.on("/stream", handleStream);
+  
+  // Handle CORS preflight requests for /stream
+  server.on("/stream", HTTP_OPTIONS, []() {
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+    server.sendHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+    server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+    server.send(204);
+  });
+  
+  server.on("/stream", HTTP_GET, handleStream);
   
   // Start server
   server.begin();
   Serial.println("HTTP server started");
-  Serial.println("Stream available at: http://" + WiFi.localIP().toString() + "/stream");
+  Serial.println("Stream available at:");
+  Serial.println("  http://" + WiFi.localIP().toString() + "/stream");
+  Serial.println("  http://esp32-cam.local/stream (mDNS)");
 }
 
 // ============================================================================
@@ -88,6 +100,7 @@ void setup() {
 // ============================================================================
 void loop() {
   server.handleClient();
+  // mDNS runs automatically on ESP32 - no update() needed
   delay(1);
 }
 
@@ -158,6 +171,15 @@ void initWiFi() {
     Serial.println("\nWi-Fi connected!");
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
+    
+    // Initialize mDNS (Multicast DNS) for automatic IP discovery
+    // This allows access via: http://esp32-cam.local
+    if (MDNS.begin("esp32-cam")) {
+      Serial.println("mDNS responder started");
+      Serial.println("Access via: http://esp32-cam.local");
+    } else {
+      Serial.println("Error setting up MDNS responder!");
+    }
   } else {
     Serial.println("\nWi-Fi connection failed!");
     Serial.println("Please check your SSID and password.");
@@ -187,9 +209,12 @@ void handleStream() {
   
   WiFiClient client = server.client();
   
-  // Send MJPEG headers
+  // Send MJPEG headers with CORS support for JavaScript fetch
   String response = "HTTP/1.1 200 OK\r\n";
-  response += "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n\r\n";
+  response += "Content-Type: multipart/x-mixed-replace; boundary=frame\r\n";
+  response += "Access-Control-Allow-Origin: *\r\n";
+  response += "Access-Control-Allow-Methods: GET, OPTIONS\r\n";
+  response += "Access-Control-Allow-Headers: Content-Type\r\n\r\n";
   server.sendContent(response);
   
   // Continuously send frames
