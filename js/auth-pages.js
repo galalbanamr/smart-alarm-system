@@ -4,71 +4,87 @@
  */
 
 import { AuthManager } from './auth.js';
-import { translationManager } from './translations.js';
+// import { translationManager } from './translations.js'; // Assuming translations might be optional or handled simply for now
 
 const authManager = new AuthManager();
 
 // Login page functionality
-if (document.getElementById('parentLoginForm') || document.getElementById('childLoginForm')) {
-    // Dashboard selection is handled by inline functions in login.html
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+    // Role switcher logic for UI
+    const roleRadios = document.querySelectorAll('input[name="role"]');
+    const fatherNameGroup = document.getElementById('fatherNameContainer');
+    const fatherNameInput = document.getElementById('loginFatherName');
 
-    // Parent login
-    if (document.getElementById('parentLoginForm')) {
-        document.getElementById('parentLoginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('parentUsername').value.trim();
-            const password = document.getElementById('parentPassword').value;
-            
-            const errorDiv = document.getElementById('parentErrorMessage');
-            errorDiv.classList.remove('show');
+    if (roleRadios && fatherNameGroup) {
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const label = document.getElementById('usernameLabel');
+                const input = document.getElementById('loginUsername');
+
+                if (e.target.value === 'Child') {
+                    fatherNameGroup.classList.remove('hidden');
+                    if (fatherNameInput) fatherNameInput.required = true;
+                    if (label) label.textContent = 'Child Name';
+                    if (input) input.placeholder = 'Enter child name';
+                } else {
+                    fatherNameGroup.classList.add('hidden');
+                    if (fatherNameInput) fatherNameInput.required = false;
+                    if (label) label.textContent = 'Username';
+                    if (input) input.placeholder = 'Enter your username';
+                }
+            });
+        });
+    }
+
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const errorDiv = document.getElementById('loginErrorMessage');
+        if (errorDiv) {
+            errorDiv.classList.add('hidden');
             errorDiv.textContent = '';
-            
+        }
+
+        const role = document.querySelector('input[name="role"]:checked').value;
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        // Simple validation or translation fallback
+        const showError = (msg) => {
+            if (errorDiv) {
+                errorDiv.textContent = msg;
+                errorDiv.classList.remove('hidden');
+            } else {
+                alert(msg);
+            }
+        };
+
+        if (role === 'Parent') {
             const result = authManager.login(username, password);
-            
             if (result.success) {
                 if (result.user.role !== 'parent') {
-                    errorDiv.textContent = translationManager.t('error');
-                    errorDiv.classList.add('show');
+                    showError('Invalid role for this user.');
                     return;
                 }
-                redirectToDashboard('parent');
+                window.location.href = 'parent-dashboard.html';
             } else {
-                errorDiv.textContent = result.message || translationManager.t('error');
-                errorDiv.classList.add('show');
+                showError(result.message || 'Login failed');
             }
-        });
-    }
-
-    // Child login
-    if (document.getElementById('childLoginForm')) {
-        document.getElementById('childLoginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('childName').value.trim();
-            const password = document.getElementById('childPassword').value;
-            const fatherName = document.getElementById('fatherName').value.trim();
-            
-            const errorDiv = document.getElementById('childErrorMessage');
-            errorDiv.classList.remove('show');
-            errorDiv.textContent = '';
-            
-            if (!name || !password || !fatherName) {
-                errorDiv.textContent = translationManager.t('error');
-                errorDiv.classList.add('show');
+        } else if (role === 'Child') {
+            const fatherName = document.getElementById('loginFatherName').value.trim();
+            if (!fatherName) {
+                showError('Father\'s name is required for child login');
                 return;
             }
-            
-            const result = authManager.loginChild(name, password, fatherName);
-            
+            const result = authManager.loginChild(username, password, fatherName);
             if (result.success) {
-                redirectToDashboard('child');
+                window.location.href = 'child-dashboard.html';
             } else {
-                errorDiv.textContent = result.message;
-                errorDiv.classList.add('show');
+                showError(result.message || 'Login failed');
             }
-        });
-    }
+        }
+    });
 
     // Check if already logged in
     window.addEventListener('DOMContentLoaded', () => {
@@ -80,91 +96,94 @@ if (document.getElementById('parentLoginForm') || document.getElementById('child
 }
 
 // Registration page functionality
-window.addEventListener('DOMContentLoaded', () => {
-    const registerForm = document.getElementById('registerForm');
-    if (!registerForm) return;
-
-    const roleSelect = document.getElementById('regRole');
-    const fatherNameGroup = document.getElementById('fatherNameGroup');
+const registerForm = document.getElementById('registerForm');
+if (registerForm) {
+    const roleRadios = document.querySelectorAll('input[name="role"]');
+    const fatherNameGroup = document.getElementById('fatherNameContainer');
     const fatherNameInput = document.getElementById('regFatherName');
 
     // Show/hide father name field based on role
-    if (roleSelect && fatherNameGroup && fatherNameInput) {
-        roleSelect.addEventListener('change', () => {
-            if (roleSelect.value === 'child') {
-                fatherNameGroup.style.display = 'block';
+    const updateFatherNameVisibility = () => {
+        const selectedRole = document.querySelector('input[name="role"]:checked');
+        if (selectedRole && fatherNameGroup && fatherNameInput) {
+            if (selectedRole.value === 'child') {
+                fatherNameGroup.classList.remove('hidden');
                 fatherNameInput.required = true;
             } else {
-                fatherNameGroup.style.display = 'none';
+                fatherNameGroup.classList.add('hidden');
                 fatherNameInput.required = false;
             }
+        }
+    };
+
+    if (roleRadios && fatherNameGroup && fatherNameInput) {
+        roleRadios.forEach(radio => {
+            radio.addEventListener('change', updateFatherNameVisibility);
         });
+        // Check initial state on page load
+        updateFatherNameVisibility();
     }
 
     registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        
-        const name = document.getElementById('regName').value.trim();
-        const username = document.getElementById('regUsername').value.trim();
-        const password = document.getElementById('regPassword').value;
-        const role = document.getElementById('regRole').value;
-        const fatherName = role === 'child' ? document.getElementById('regFatherName').value.trim() : null;
-        
-        const errorDiv = document.getElementById('errorMessage');
-        const successDiv = document.getElementById('successMessage');
-        
-        errorDiv.classList.remove('show');
-        successDiv.classList.remove('show');
-        errorDiv.textContent = '';
-        successDiv.textContent = '';
-        
-        // Validation
-        if (!name || name.length === 0) {
-            errorDiv.textContent = translationManager.t('error');
-            errorDiv.classList.add('show');
-            return;
-        }
-        
-        if (username.length < 3) {
-            errorDiv.textContent = translationManager.t('error');
-            errorDiv.classList.add('show');
-            return;
-        }
-        
-        if (password.length < 6) {
-            errorDiv.textContent = translationManager.t('error');
-            errorDiv.classList.add('show');
-            return;
-        }
 
-        if (role === 'child' && !fatherName) {
-            errorDiv.textContent = translationManager.t('error');
-            errorDiv.classList.add('show');
-            return;
-        }
-        
-        try {
-            const result = authManager.register(username, password, role, name, fatherName);
-            
-            if (result.success) {
-                successDiv.textContent = translationManager.t('success');
-                successDiv.classList.add('show');
-                
-                // Redirect to login after 2 seconds
-                setTimeout(() => {
-                    window.location.href = 'login.html';
-                }, 2000);
+        const name = document.getElementById('regName').value.trim(); // Full Name
+        const username = document.getElementById('regUsername').value.trim(); // Username
+        const password = document.getElementById('regPassword').value;
+        const role = document.querySelector('input[name="role"]:checked').value;
+        const fatherName = role === 'child' ? document.getElementById('regFatherName').value.trim() : null;
+
+        // Note: The original authManager.register expects (username, password, role, name, fatherName)
+        // We will use 'email' as the username for uniqueness if needed, or just map fields.
+        // Assuming regUsername is the display name/codename.
+
+        const errorDiv = document.getElementById('regErrorMessage'); // Need to add this to HTML
+        const successDiv = document.getElementById('regSuccessMessage'); // Need to add this to HTML
+
+        const showError = (msg) => {
+            if (errorDiv) {
+                errorDiv.textContent = msg;
+                errorDiv.classList.remove('hidden');
             } else {
-                errorDiv.textContent = result.message || translationManager.t('error');
-                errorDiv.classList.add('show');
+                alert(msg);
+            }
+        };
+
+        if (successDiv) successDiv.classList.add('hidden');
+        if (errorDiv) errorDiv.classList.add('hidden');
+
+        try {
+            // Use username as unique ID
+            const result = authManager.register(username, password, role, name, fatherName);
+
+            if (result.success) {
+                // Auto-login the user after successful registration
+                const loginResult = role === 'child'
+                    ? authManager.loginChild(name, password, fatherName)
+                    : authManager.login(username, password);
+
+                if (successDiv) {
+                    successDiv.textContent = '✓ Account created successfully! Logging you in...';
+                    successDiv.classList.remove('hidden');
+                }
+
+                setTimeout(() => {
+                    // Redirect to appropriate dashboard
+                    if (role === 'child') {
+                        window.location.href = 'child-dashboard.html';
+                    } else {
+                        window.location.href = 'parent-dashboard.html';
+                    }
+                }, 1500);
+            } else {
+                showError(result.message || 'Registration failed');
             }
         } catch (error) {
             console.error('Registration error:', error);
-            errorDiv.textContent = translationManager.t('error');
-            errorDiv.classList.add('show');
+            showError('An error occurred');
         }
     });
-});
+}
 
 function redirectToDashboard(role) {
     if (role === 'child') {

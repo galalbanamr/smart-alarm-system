@@ -6,27 +6,27 @@
 
 export const CONFIG = {
     // Camera source: 'laptop' or 'esp32'
-    CAMERA_SOURCE: 'esp32',
-    
+    CAMERA_SOURCE: 'laptop',
+
     // ESP32-CAM hostname/IP - Uses mDNS hostname for automatic IP discovery
     // If mDNS doesn't work, you can use the IP address directly
     ESP32_CAM_IP: 'esp32-cam.local', // mDNS hostname (automatic IP discovery)
     // ESP32_CAM_IP: '192.168.137.141', // Fallback: Use IP if mDNS doesn't work
-    
+
     // ESP32-CAM stream endpoint
     ESP32_CAM_STREAM_URL: null, // Will be constructed from ESP32_CAM_IP
-    
+
     // ESP32 Buzzer hostname/IP - Uses mDNS hostname for automatic IP discovery
     // If mDNS doesn't work, you can use the IP address directly
     ESP32_BUZZER_IP: 'esp32-buzzer.local', // mDNS hostname (automatic IP discovery)
     // ESP32_BUZZER_IP: '192.168.137.228', // Use IP address directly if mDNS doesn't work (check Serial Monitor for actual IP)
-    
+
     // Legacy: Set to null to use device camera
     // Example ESP32-CAM URLs:
     // - 'http://192.168.1.100:81/stream' (MJPEG stream)
     // - 'http://192.168.1.100:81/video' (H.264 stream)
     VIDEO_STREAM_URL: null,
-    
+
     // MediaPipe Pose settings
     POSE_SETTINGS: {
         modelComplexity: 1, // 0, 1, or 2 (higher = more accurate but slower)
@@ -34,14 +34,14 @@ export const CONFIG = {
         minDetectionConfidence: 0.5,
         minTrackingConfidence: 0.5
     },
-    
+
     // Standing detection thresholds
     STANDING_THRESHOLDS: {
         verticalTolerance: 0.25, // Increased tolerance for alignment
         minHeightRatio: 1.1, // Much lower threshold for easier detection
         maxAngleDeviation: 30
     },
-    
+
     // Clothing detection settings
     CLOTHING_DETECTION: {
         // Target color to detect (RGB values 0-255)
@@ -56,7 +56,7 @@ export const CONFIG = {
         // Enable debug logging (set to true to see color values in console)
         debug: true
     },
-    
+
     // Check requirements
     CHECKS: {
         // Required continuous standing duration in seconds

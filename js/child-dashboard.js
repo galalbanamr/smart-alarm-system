@@ -18,7 +18,7 @@ const buzzerController = new BuzzerController();
 // Check authentication
 window.addEventListener('DOMContentLoaded', () => {
     const session = authManager.getCurrentSession();
-    
+
     if (!session || session.role !== 'child') {
         window.location.href = 'login.html';
         return;
@@ -38,7 +38,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (cameraSourceSelect) {
         // Set initial value from config
         cameraSourceSelect.value = CONFIG.CAMERA_SOURCE || 'laptop';
-        
+
         // Handle camera source changes
         cameraSourceSelect.addEventListener('change', async (e) => {
             const newSource = e.target.value;
@@ -77,13 +77,15 @@ async function initStandingDetection(session) {
         (results) => onPoseResults(results, session, standingDetector, clothingDetector, uiController, poseDetector)
     );
 
+    // Initialize app structure immediately so we can switch cameras if initialization fails
+    app = { poseDetector, standingDetector, clothingDetector, uiController };
+
     try {
         uiController.showInitializing();
         await poseDetector.initialize(initialSource);
-        app = { poseDetector, standingDetector, clothingDetector, uiController };
     } catch (error) {
         console.error('Initialization error:', error);
-        const errorMessage = initialSource === 'esp32' 
+        const errorMessage = initialSource === 'esp32'
             ? `Failed to connect to ESP32-CAM. Check IP address (${CONFIG.ESP32_CAM_IP}) and network connection.`
             : 'Failed to initialize camera. Please check permissions.';
         uiController.showError(errorMessage);
@@ -132,7 +134,7 @@ function onPoseResults(results, session, standingDetector, clothingDetector, uiC
 
     const now = Date.now();
     const canvas = document.getElementById('canvas');
-    
+
     // Get the current source element (video or ESP32 image)
     const source = poseDetector.getCurrentSource();
     if (!source) {
@@ -208,14 +210,14 @@ function onPoseResults(results, session, standingDetector, clothingDetector, uiC
         if (standingStartTime) {
             // Calculate how long the person has been continuously standing
             standingDuration = Math.floor((now - standingStartTime) / 1000);
-            
+
             // Only mark as complete after 5 seconds of continuous standing
             // The timer resets automatically if person stops standing (handled above)
             if (standingDuration >= CONFIG.CHECKS.standingDuration) {
                 standingCheckComplete = true;
                 // Turn off buzzer and LED IMMEDIATELY when standing is detected (after required duration)
                 console.log(`🎯 Standing check COMPLETE! (${standingDuration} seconds) - Turning off buzzer and LED NOW`);
-                
+
                 // Send the off command immediately - don't wait for promise
                 buzzerController.turnOff().then(success => {
                     if (success) {
@@ -229,7 +231,7 @@ function onPoseResults(results, session, standingDetector, clothingDetector, uiC
                 }).catch(error => {
                     console.error('❌ Error sending buzzer off command:', error);
                 });
-                
+
                 // Notify parent that child has waked up (after 5 seconds)
                 notifyParent(session, 'standing');
             }
@@ -282,7 +284,7 @@ let uniformCheckTime = null;
 
 function notifyParent(session, checkType) {
     const parent = authManager.getParentForChild(session.userId);
-    
+
     if (!parent) {
         return;
     }
