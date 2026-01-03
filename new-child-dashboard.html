@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Child Dashboard - Morning Hero</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#10b77f",
+              "background-light": "#f6f8f7",
+              "background-dark": "#0f0f1e", // Deep Navy requested in plan
+              "accent-orange": "#ff8c42",
+              "glass-bg": "rgba(23, 35, 45, 0.6)",
+              "glass-border": "rgba(255, 255, 255, 0.1)",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            backgroundImage: {
+              'night-morning': 'linear-gradient(135deg, #0f0f1e 0%, #082f49 50%, #10b77f 100%)',
+              'glow-border': 'conic-gradient(from 0deg, #10b77f, #ff8c42, #10b77f)',
+            },
+            boxShadow: {
+              'neon': '0 0 20px rgba(16, 183, 127, 0.4)',
+              'neon-orange': '0 0 20px rgba(255, 140, 66, 0.4)',
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        /* Custom styles for AR elements */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .camera-overlay {
+            background: linear-gradient(180deg, rgba(16, 183, 127, 0.1) 0%, rgba(16, 183, 127, 0) 50%, rgba(16, 183, 127, 0.1) 100%);
+        }
+
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .scan-line {
+            height: 2px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, #10b77f, transparent);
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: scan 3s linear infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-spin-slow {
+            animation: spin-slow 12s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="h-20 flex items-center justify-between px-8 border-b border-white/5 bg-[#0f0f1e]/80 backdrop-blur-md relative z-20">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white shadow-neon">
+<span class="material-symbols-outlined">wb_sunny</span>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight">Morning Hero</h1>
+<p class="text-xs text-gray-400 font-medium tracking-wide">PHASE 1: POSTURE CHECK</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<!-- Streak Counter -->
+<div class="glass-panel px-4 py-2 rounded-full flex items-center gap-3">
+<span class="material-symbols-outlined text-orange-400">local_fire_department</span>
+<div class="flex flex-col leading-none">
+<span class="text-xs text-gray-400 uppercase font-bold">Streak</span>
+<span class="text-sm font-bold">12 Days</span>
+</div>
+</div>
+<!-- Profile -->
+<div class="flex items-center gap-3 pl-6 border-l border-white/10">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-bold">Alex</p>
+<p class="text-xs text-primary">Level 5 Scout</p>
+</div>
+<div class="h-10 w-10 rounded-full bg-cover bg-center border-2 border-primary shadow-neon" data-alt="Profile picture of a smiling child" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDa-v_RxWKPIvKgMIdrLq1_guLotWR36MF9UYkuRrbM0_mbtgVLYzCGGsVqpCA3LgRn7CvaE0JQYGM1yy8T7XZCBTwSl9QgK_Nu4J7vAJdPFG38mBYyAdjbJNLRqocGG9SEnJC_MoQ350vUWjzy1Hl82_ZdZ2vjKsSZTY7zdCmI3VVu5WB4EV5w4NeyOw8fZaDEKwXgmz5lDXkwJdpHCwpEVZMc7eQmzCjSO0x0GQUy-Pk8kSWJrrA0tGWxVbyGIYOy7ok3wANcPRs')"></div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex p-6 gap-6 relative z-10 overflow-hidden">
+<!-- Left Sidebar: Timeline & Steps -->
+<aside class="w-72 flex flex-col gap-4 hidden lg:flex">
+<div class="glass-panel rounded-2xl p-5 flex-1 flex flex-col">
+<h3 class="text-sm font-bold text-gray-400 uppercase mb-6 tracking-wider">Mission Steps</h3>
+<div class="space-y-6 relative">
+<!-- Connecting Line -->
+<div class="absolute left-[19px] top-4 bottom-4 w-0.5 bg-white/10 -z-10"></div>
+<!-- Step 1: Done -->
+<div class="flex items-start gap-4 opacity-50">
+<div class="w-10 h-10 rounded-full bg-primary/20 border border-primary text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined">check</span>
+</div>
+<div class="pt-2">
+<p class="font-bold text-lg">Wake Up</p>
+<p class="text-sm text-gray-400">07:00 AM</p>
+</div>
+</div>
+<!-- Step 2: Active -->
+<div class="flex items-start gap-4">
+<div class="relative">
+<div class="absolute inset-0 bg-accent-orange blur-lg opacity-40 rounded-full animate-pulse"></div>
+<div class="w-10 h-10 rounded-full bg-accent-orange text-white flex items-center justify-center shrink-0 relative z-10 shadow-neon-orange">
+<span class="material-symbols-outlined animate-spin-slow">cached</span>
+</div>
+</div>
+<div class="pt-1">
+<p class="font-bold text-lg text-white">Posture Check</p>
+<p class="text-sm text-accent-orange font-medium">Scanning...</p>
+</div>
+</div>
+<!-- Step 3: Pending -->
+<div class="flex items-start gap-4 opacity-30">
+<div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+<span class="text-sm font-bold">3</span>
+</div>
+<div class="pt-2">
+<p class="font-bold text-lg">Uniform</p>
+<p class="text-sm text-gray-400">Next Up</p>
+</div>
+</div>
+<!-- Step 4: Pending -->
+<div class="flex items-start gap-4 opacity-30">
+<div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+<span class="text-sm font-bold">4</span>
+</div>
+<div class="pt-2">
+<p class="font-bold text-lg">Breakfast</p>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-6 border-t border-white/10">
+<button class="w-full py-3 rounded-lg border border-white/20 hover:bg-white/5 text-gray-400 hover:text-white transition-colors text-sm font-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">help</span>
+                        I need help
+                    </button>
+</div>
+</div>
+</aside>
+<!-- Central Viewport: AR Camera -->
+<section class="flex-1 relative flex flex-col justify-center items-center">
+<!-- Camera Container -->
+<div class="relative w-full h-full max-h-[800px] bg-black rounded-3xl overflow-hidden border-[3px] border-accent-orange shadow-neon-orange group">
+<!-- Background Video Placeholder -->
+<div class="absolute inset-0 bg-cover bg-center opacity-80" data-alt="A child standing in a bedroom facing the camera" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDTqMNilYzU7W8kkGrd-G6Ps5G9FfKbXU_RAztqlw9GcnYTSE3W5xfSdOoX9vPw7Ol8CVZrXHcc1Ah0Em1cS_If-E1TE4ourQfBQPzKawCFJpVGJXfxBuNvJUcPGxWA3hV7SwkInU9RS_NiOYwjXifuEoinx4CET2oTZIEbqtaSaak3pb44xrUo0dqFarcKZM_rSE7qsqaDFbiy97CWNcW_xDJotaBRRGFdnjocqNyAcEVXuybpzVyF1AQfWc05AEf2oRGlP99eA1A')"></div>
+<!-- Scan Line Effect -->
+<div class="scan-line z-10"></div>
+<!-- Camera Overlay Gradient (Vignette) -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 z-10 pointer-events-none"></div>
+<!-- Top Center: Camera Status -->
+<div class="absolute top-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 glass-panel px-3 py-1.5 rounded-full">
+<div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
+<span class="text-xs font-mono text-white tracking-widest uppercase">REC • LIVE FEED</span>
+</div>
+<!-- Center AR Reticle -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] z-20 pointer-events-none flex items-center justify-center">
+<!-- Outer Ring (Static) -->
+<div class="absolute inset-0 border border-white/20 rounded-full"></div>
+<!-- Inner Ring (Pulsing Orange for Active Phase) -->
+<div class="absolute inset-4 border-2 border-accent-orange/60 rounded-full animate-pulse-slow"></div>
+<!-- Target Corners -->
+<div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-accent-orange rounded-tl-xl"></div>
+<div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-accent-orange rounded-tr-xl"></div>
+<div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-accent-orange rounded-bl-xl"></div>
+<div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-accent-orange rounded-br-xl"></div>
+<!-- Center Status Text -->
+<div class="text-center mt-48">
+<p class="text-accent-orange font-mono text-sm tracking-[0.2em] uppercase mb-1">Scanning Body</p>
+<p class="text-white font-bold text-2xl drop-shadow-lg">Stand Still</p>
+</div>
+</div>
+<!-- AR Floating Cards (Bottom) -->
+<div class="absolute bottom-10 left-0 right-0 z-30 flex justify-center items-end gap-4 px-10">
+<!-- Timer Card -->
+<div class="glass-panel p-4 rounded-xl flex flex-col items-center min-w-[140px] transform transition hover:scale-105">
+<p class="text-xs text-gray-300 uppercase mb-1 font-semibold">Hold For</p>
+<div class="text-3xl font-black font-mono text-white tracking-tighter tabular-nums">
+                            00:03
+                        </div>
+</div>
+<!-- Instruction Card (Wide) -->
+<div class="glass-panel p-4 rounded-xl flex items-center gap-4 max-w-md border-l-4 border-l-accent-orange">
+<div class="bg-accent-orange/20 p-2 rounded-lg text-accent-orange">
+<span class="material-symbols-outlined text-3xl">accessibility_new</span>
+</div>
+<div>
+<p class="text-xs text-accent-orange font-bold uppercase tracking-wide mb-0.5">Current Task</p>
+<h3 class="text-xl font-bold text-white leading-tight">Stand straight inside the circle</h3>
+</div>
+</div>
+<!-- Skip Button (Ghost) -->
+<button class="glass-panel w-12 h-12 rounded-full flex items-center justify-center hover:bg-white/10 text-white/50 hover:text-white transition-colors ml-2" title="Skip Step">
+<span class="material-symbols-outlined">skip_next</span>
+</button>
+</div>
+<!-- Analysis Data Decorations (Cyberpunk touches) -->
+<div class="absolute top-20 right-6 z-20 flex flex-col gap-2 items-end opacity-70">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono text-primary">POSTURE_OK</span>
+<div class="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full w-[80%] bg-primary"></div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono text-accent-orange">LIGHT_LVL</span>
+<div class="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full w-[45%] bg-accent-orange"></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Background Ambient Glow -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 bg-night-morning opacity-90"></div>
+<div class="fixed bottom-0 right-0 w-[500px] h-[500px] bg-primary rounded-full blur-[120px] opacity-10 pointer-events-none -z-10"></div>
+<div class="fixed top-0 left-0 w-[500px] h-[500px] bg-blue-600 rounded-full blur-[120px] opacity-10 pointer-events-none -z-10"></div>
+</body></html>
