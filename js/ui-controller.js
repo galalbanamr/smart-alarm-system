@@ -126,7 +126,7 @@ export class UIController {
 
                 // Update AR elements for standing detection
                 this.updateTimer(remainingTime);
-                this.updateInstruction('Hold your position!', 'accessibility_new');
+                this.updateInstruction(translationManager.t('holdPosition'), 'accessibility_new');
                 this.updateStep2('active', `${standingDuration}s / ${CONFIG.CHECKS.standingDuration}s`);
                 this.updatePostureBar((standingDuration / CONFIG.CHECKS.standingDuration) * 100);
 
@@ -138,8 +138,8 @@ export class UIController {
 
                 // Update AR elements
                 this.updateTimer(CONFIG.CHECKS.standingDuration);
-                this.updateInstruction('Stand straight inside the circle', 'accessibility_new');
-                this.updateStep2('scanning', 'Scanning...');
+                this.updateInstruction(translationManager.t('taskInstruction'), 'accessibility_new');
+                this.updateStep2('scanning', translationManager.t('scanning'));
                 this.updatePostureBar(0);
             }
 
@@ -163,7 +163,7 @@ export class UIController {
             const remainingTime = Math.max(0, CONFIG.CHECKS.clothingDuration - clothingDuration);
 
             // Mark step 2 as complete and activate step 3
-            this.updateStep2('complete', 'Complete ✓');
+            this.updateStep2('complete', translationManager.t('completeStatus') + ' ✓');
             this.activateStep3();
 
             if (isWearingUniform) {
@@ -181,7 +181,7 @@ export class UIController {
 
                 // Update AR elements for uniform detection
                 this.updateTimer(remainingTime);
-                this.updateInstruction('Hold still for uniform check!', 'checkroom');
+                this.updateInstruction(translationManager.t('holdStillUniform'), 'checkroom');
                 this.updateStep3('active', `${clothingDuration}s / ${CONFIG.CHECKS.clothingDuration}s`);
                 this.updateUniformBar((clothingDuration / CONFIG.CHECKS.clothingDuration) * 100);
 
@@ -193,8 +193,8 @@ export class UIController {
 
                 // Update AR elements
                 this.updateTimer(CONFIG.CHECKS.clothingDuration);
-                this.updateInstruction('Put on your black school uniform', 'checkroom');
-                this.updateStep3('scanning', 'Scanning...');
+                this.updateInstruction(translationManager.t('putOnUniformInstruction'), 'checkroom');
+                this.updateStep3('scanning', translationManager.t('scanning'));
                 this.updateUniformBar(0);
             }
 
@@ -319,14 +319,14 @@ export class UIController {
 
         // Update AR elements for completion
         this.updateTimer(0);
-        this.updateInstruction('All checks complete! Great job! 🎉', 'celebration');
-        this.updateStep2('complete', 'Complete ✓');
-        this.updateStep3('complete', 'Complete ✓');
+        this.updateInstruction(translationManager.t('allChecksCompleteMessage'), 'celebration');
+        this.updateStep2('complete', translationManager.t('completeStatus') + ' ✓');
+        this.updateStep3('complete', translationManager.t('completeStatus') + ' ✓');
         this.updatePostureBar(100);
         this.updateUniformBar(100);
         if (this.postureLabel) this.postureLabel.textContent = 'POSTURE_OK ✓';
         if (this.uniformLabel) this.uniformLabel.textContent = 'UNIFORM ✓';
-        if (this.taskLabel) this.taskLabel.textContent = 'Mission Complete';
+        if (this.taskLabel) this.taskLabel.textContent = translationManager.t('missionComplete');
 
         // Change status ring to green for success
         if (this.statusRing) {
@@ -386,7 +386,7 @@ export class UIController {
     showError(message) {
         this.setIcon('⚠️');
         this.setText(message);
-        this.setSubtext('Please check camera permissions');
+        this.setSubtext(translationManager.t('checkPermissions'));
         if (this.statusText) this.statusText.className = 'status-text not-standing';
         this.setCardClass('status-card not-standing');
         this.setOverlayClass('status-overlay standing');
@@ -429,7 +429,7 @@ export class UIController {
             </div>
             <div>
                 <h3 class="font-bold text-white">Alarm Silenced!</h3>
-                <p class="text-xs text-gray-300">Great job standing up!</p>
+                <p class="text-xs text-gray-300">${translationManager.t('greatJobStanding')}</p>
             </div>
         `;
         document.body.appendChild(notification);

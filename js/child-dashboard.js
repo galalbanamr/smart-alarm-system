@@ -10,6 +10,7 @@ import { ClothingDetector } from './clothing-detector.js';
 import { UIController } from './ui-controller.js';
 import { BuzzerController } from './buzzer-controller.js';
 import { CONFIG } from './config.js';
+import { translationManager } from './translations.js';
 
 const authManager = new AuthManager();
 const recordsManager = new RecordsManager();
@@ -32,6 +33,26 @@ window.addEventListener('DOMContentLoaded', () => {
         authManager.logout();
         window.location.href = 'login.html';
     });
+
+    // Setup Language Toggle
+    const langBtn = document.getElementById('langBtn');
+    if (langBtn) {
+        // Initial state
+        const updateBtnState = (lang) => {
+            const langText = document.getElementById('langText');
+            if (langText) langText.textContent = lang === 'en' ? 'EN' : 'AR';
+        };
+
+        updateBtnState(translationManager.currentLang);
+
+        langBtn.onclick = () => {
+            const newLang = translationManager.currentLang === 'en' ? 'ar' : 'en';
+            translationManager.setLanguage(newLang);
+        };
+
+        // Subscribe to changes
+        translationManager.subscribe(updateBtnState);
+    }
 
     // Setup camera source selector FIRST (before initializing detection)
     const cameraSourceSelect = document.getElementById('cameraSource');

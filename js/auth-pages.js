@@ -4,9 +4,29 @@
  */
 
 import { AuthManager } from './auth.js';
-// import { translationManager } from './translations.js'; // Assuming translations might be optional or handled simply for now
+import { translationManager } from './translations.js';
 
 const authManager = new AuthManager();
+
+// Shared Language Toggle Logic
+function setupLanguageToggle() {
+    const langBtn = document.getElementById('langBtn');
+    if (langBtn) {
+        const updateBtnState = (lang) => {
+            const langText = document.getElementById('langText');
+            if (langText) langText.textContent = lang === 'en' ? 'EN' : 'AR';
+        };
+
+        updateBtnState(translationManager.currentLang);
+
+        langBtn.onclick = () => {
+            const newLang = translationManager.currentLang === 'en' ? 'ar' : 'en';
+            translationManager.setLanguage(newLang);
+        };
+
+        translationManager.subscribe(updateBtnState);
+    }
+}
 
 // Login page functionality
 const loginForm = document.getElementById('loginForm');
@@ -25,13 +45,26 @@ if (loginForm) {
                 if (e.target.value === 'Child') {
                     fatherNameGroup.classList.remove('hidden');
                     if (fatherNameInput) fatherNameInput.required = true;
-                    if (label) label.textContent = 'Child Name';
-                    if (input) input.placeholder = 'Enter child name';
+                    // Use data-i18n for dynamic translation
+                    if (label) {
+                        label.setAttribute('data-i18n', 'childName'); // Need to add to dictionary or reuse
+                        label.textContent = translationManager.t('childName') || 'Child Name';
+                    }
+                    if (input) {
+                        input.setAttribute('data-i18n', 'enterChildName');
+                        input.placeholder = translationManager.t('enterChildName') || 'Enter child name';
+                    }
                 } else {
                     fatherNameGroup.classList.add('hidden');
                     if (fatherNameInput) fatherNameInput.required = false;
-                    if (label) label.textContent = 'Username';
-                    if (input) input.placeholder = 'Enter your username';
+                    if (label) {
+                        label.setAttribute('data-i18n', 'username');
+                        label.textContent = translationManager.t('username');
+                    }
+                    if (input) {
+                        input.setAttribute('data-i18n', 'enterUsername');
+                        input.placeholder = translationManager.t('enterUsername');
+                    }
                 }
             });
         });
@@ -88,6 +121,8 @@ if (loginForm) {
 
     // Check if already logged in
     window.addEventListener('DOMContentLoaded', () => {
+        setupLanguageToggle(); // Init toggle
+
         if (authManager.isLoggedIn()) {
             const session = authManager.getCurrentSession();
             redirectToDashboard(session.role);
@@ -98,6 +133,9 @@ if (loginForm) {
 // Registration page functionality
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
+    // Init language toggle for register page
+    window.addEventListener('DOMContentLoaded', setupLanguageToggle);
+
     const roleRadios = document.querySelectorAll('input[name="role"]');
     const fatherNameGroup = document.getElementById('fatherNameContainer');
     const fatherNameInput = document.getElementById('regFatherName');

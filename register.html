@@ -17,6 +17,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <!-- Theme Config -->
@@ -191,6 +192,12 @@
     </div>
     <!-- Main Layout -->
     <div class="relative z-10 flex min-h-screen w-full flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+        <!-- Language Switcher -->
+        <button id="langBtn"
+            class="absolute top-4 right-4 glass-card px-3 py-1.5 rounded-lg flex items-center gap-2 hover:bg-white/10 transition-colors z-50">
+            <span id="langIcon">🌐</span>
+            <span id="langText" class="text-xs font-bold text-gray-300">EN</span>
+        </button>
         <!-- Navbar Minimal -->
         <header class="absolute top-0 left-0 right-0 flex items-center justify-between px-6 py-6 md:px-12">
             <div class="flex items-center gap-3">
@@ -198,17 +205,21 @@
                     class="flex items-center justify-center size-10 rounded-lg bg-primary/10 border border-primary/20 text-primary">
                     <span class="material-symbols-outlined text-2xl">rocket_launch</span>
                 </div>
-                <h1 class="text-xl font-bold tracking-tight text-white hidden sm:block">Waking Up</h1>
+                <h1 class="text-xl font-bold tracking-tight text-white hidden sm:block" data-i18n="appName">Waking Up
+                </h1>
             </div>
-            <a class="text-sm font-medium text-gray-400 hover:text-primary transition-colors duration-200" href="#">Help
+            <a class="text-sm font-medium text-gray-400 hover:text-primary transition-colors duration-200" href="#"
+                data-i18n="helpCenter">Help
                 Center</a>
         </header>
         <!-- Registration Card -->
         <div class="glass-card w-full max-w-[480px] rounded-xl p-8 sm:p-10 flex flex-col gap-8 animate-fade-in-up">
             <!-- Header -->
             <div class="flex flex-col gap-2 text-center">
-                <h2 class="text-3xl font-black tracking-tight text-white neon-text">Create Account</h2>
-                <p class="text-gray-400 text-sm font-medium">Start your morning routine. Select your role to begin.</p>
+                <h2 class="text-3xl font-black tracking-tight text-white neon-text" data-i18n="createAccount">Create
+                    Account</h2>
+                <p class="text-gray-400 text-sm font-medium" data-i18n="joinSubtitle">Start your morning routine. Select
+                    your role to begin.</p>
             </div>
             <!-- Role Selector (Segmented Button) -->
             <div class="w-full">
@@ -217,14 +228,14 @@
                         <input checked="" class="peer sr-only" name="role" type="radio" value="parent" />
                         <div
                             class="py-2.5 px-4 rounded-md text-sm font-semibold text-gray-400 transition-all duration-300 peer-checked:text-background-dark peer-checked:bg-primary peer-checked:shadow-[0_0_15px_rgba(16,183,127,0.4)]">
-                            Parent Mode
+                            <span data-i18n="parentMode">Parent Mode</span>
                         </div>
                     </label>
                     <label class="flex-1 text-center cursor-pointer relative z-10">
                         <input class="peer sr-only" name="role" type="radio" value="child" />
                         <div
                             class="py-2.5 px-4 rounded-md text-sm font-semibold text-gray-400 transition-all duration-300 peer-checked:text-background-dark peer-checked:bg-primary peer-checked:shadow-[0_0_15px_rgba(16,183,127,0.4)]">
-                            Child Mode
+                            <span data-i18n="childMode">Child Mode</span>
                         </div>
                     </label>
                 </div>
@@ -233,7 +244,8 @@
             <form id="registerForm" class="flex flex-col gap-5">
                 <!-- Full Name Input -->
                 <div class="space-y-1.5">
-                    <label class="text-xs font-bold text-gray-300 uppercase tracking-wider ml-1">Full Name</label>
+                    <label class="text-xs font-bold text-gray-300 uppercase tracking-wider ml-1"
+                        data-i18n="fullName">Full Name</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <span
@@ -241,12 +253,13 @@
                         </div>
                         <input id="regName"
                             class="w-full bg-[#0f0f1e]/60 border border-white/10 text-white text-sm rounded-lg block pl-10 p-3.5 placeholder-gray-500 focus:outline-none focus:border-primary input-glow transition-all duration-200"
-                            placeholder="Enter your full name" type="text" />
+                            placeholder="Enter your full name" data-i18n="enterFullName" type="text" />
                     </div>
                 </div>
                 <!-- Username Input -->
                 <div class="space-y-1.5">
-                    <label class="text-xs font-bold text-gray-300 uppercase tracking-wider ml-1">Username</label>
+                    <label class="text-xs font-bold text-gray-300 uppercase tracking-wider ml-1"
+                        data-i18n="username">Username</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <span
@@ -254,13 +267,14 @@
                         </div>
                         <input id="regUsername"
                             class="w-full bg-[#0f0f1e]/60 border border-white/10 text-white text-sm rounded-lg block pl-10 p-3.5 placeholder-gray-500 focus:outline-none focus:border-primary input-glow transition-all duration-200"
-                            placeholder="Choose your username" type="text" />
+                            placeholder="Choose your username" data-i18n="chooseUsername" type="text" />
                     </div>
                 </div>
                 <!-- Father's Name Input (for child linking) -->
                 <div id="fatherNameContainer" class="space-y-1.5 hidden">
-                    <label class="text-xs font-bold text-gray-300 uppercase tracking-wider ml-1">Father's Name <span
-                            class="text-gray-500">(for children only)</span></label>
+                    <label class="text-xs font-bold text-gray-300 uppercase tracking-wider ml-1"><span
+                            data-i18n="fathersName">Father's Name</span> <span class="text-gray-500"
+                            data-i18n="forChildrenOnly">(for children only)</span></label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <span
@@ -273,7 +287,8 @@
                 </div>
                 <!-- Password Input -->
                 <div class="space-y-1.5">
-                    <label class="text-xs font-bold text-gray-300 uppercase tracking-wider ml-1">Password</label>
+                    <label class="text-xs font-bold text-gray-300 uppercase tracking-wider ml-1"
+                        data-i18n="password">Password</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <span
@@ -281,14 +296,14 @@
                         </div>
                         <input id="regPassword"
                             class="w-full bg-[#0f0f1e]/60 border border-white/10 text-white text-sm rounded-lg block pl-10 p-3.5 placeholder-gray-500 focus:outline-none focus:border-primary input-glow transition-all duration-200"
-                            placeholder="Create a secure key" type="password" />
+                            placeholder="Create a secure key" data-i18n="createSecureKey" type="password" />
                     </div>
                 </div>
                 <!-- Submit Button -->
                 <button
                     class="mt-2 w-full bg-primary hover:bg-[#0ea06f] text-background-dark font-bold py-3.5 px-4 rounded-lg transition-all duration-200 shadow-[0_0_20px_rgba(16,183,127,0.3)] hover:shadow-[0_0_25px_rgba(16,183,127,0.5)] transform hover:-translate-y-0.5 flex items-center justify-center gap-2 group"
                     type="submit">
-                    <span>Create Account</span>
+                    <span data-i18n="createAccount">Create Account</span>
                     <span
                         class="material-symbols-outlined group-hover:translate-x-1 transition-transform text-lg">arrow_forward</span>
                 </button>
@@ -298,14 +313,17 @@
                     class="hidden text-green-400 text-sm text-center mt-2 bg-green-500/10 p-2 rounded"></div>
                 <!-- Terms -->
                 <p class="text-xs text-center text-gray-500 px-4 leading-relaxed">
-                    By accessing the system, you agree to our <a class="text-primary hover:underline" href="#">Terms of
-                        Service</a> and <a class="text-primary hover:underline" href="#">Privacy Protocols</a>.
+                    <span data-i18n="terms">By accessing the system, you agree to our</span> <a
+                        class="text-primary hover:underline" href="#" data-i18n="termsOfService">Terms of
+                        Service</a> & <a class="text-primary hover:underline" href="#"
+                        data-i18n="privacyProtocols">Privacy Protocols</a>.
                 </p>
             </form>
             <!-- Login Link -->
             <div class="text-center mt-4">
-                <p class="text-sm text-gray-400">Already have an account? <a
-                        class="text-primary font-bold hover:text-white transition-colors ml-1" href="login.html">Log
+                <p class="text-sm text-gray-400"><span data-i18n="alreadyHaveAccount">Already have an account?</span> <a
+                        class="text-primary font-bold hover:text-white transition-colors ml-1" href="login.html"
+                        data-i18n="login">Log
                         in</a></p>
             </div>
         </div>

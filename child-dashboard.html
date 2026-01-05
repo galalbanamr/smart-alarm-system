@@ -5,50 +5,65 @@
 <head>
   <meta charset="utf-8" />
   <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-  <title>Child Dashboard - Waking Up</title>
+  <title data-i18n="appName">Waking Up</title>
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect" />
   <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap"
-    rel="stylesheet" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-    rel="stylesheet" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
-    rel="stylesheet" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- Material Icons -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <!-- Theme Config -->
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
       theme: {
         extend: {
-          colors: {
-            "primary": "#10b77f",
-            "background-light": "#f6f8f7",
-            "background-dark": "#0f0f1e", // Deep Navy requested in plan
-            "accent-orange": "#ff8c42",
-            "glass-bg": "rgba(23, 35, 45, 0.6)",
-            "glass-border": "rgba(255, 255, 255, 0.1)",
-          },
           fontFamily: {
-            "display": ["Inter", "sans-serif"]
+            display: ['Outfit', 'sans-serif'],
+            arabic: ['Tajawal', 'sans-serif'],
+          },
+          colors: {
+            primary: '#00D4FF',
+            secondary: '#7A00FF',
+            accent: '#FF00E6',
+            background: {
+              dark: '#0A0A1F',
+              light: '#1A1A3F'
+            },
+            "accent-orange": '#FF8C00',
+            "neon-orange": '#FFA500',
           },
           backgroundImage: {
             'night-morning': 'linear-gradient(135deg, #0f0f1e 0%, #082f49 50%, #10b77f 100%)',
             'glow-border': 'conic-gradient(from 0deg, #10b77f, #ff8c42, #10b77f)',
           },
           boxShadow: {
-            'neon': '0 0 20px rgba(16, 183, 127, 0.4)',
-            'neon-orange': '0 0 20px rgba(255, 140, 66, 0.4)',
+            'neon': '0 0 20px rgba(0, 212, 255, 0.5)',
+            'neon-strong': '0 0 30px rgba(0, 212, 255, 0.8)',
+            'neon-orange': '0 0 20px rgba(255, 140, 0, 0.6)',
           }
         },
       },
     }
   </script>
   <style>
+    /* Base styles */
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #050505;
+      color: #ffffff;
+    }
+
+    /* Arabic font support */
+    body.font-arabic {
+      font-family: 'Tajawal', sans-serif !important;
+    }
+
     /* Custom styles for AR elements */
     .glass-panel {
       background: rgba(15, 23, 42, 0.6);
@@ -337,7 +352,7 @@
         <span class="material-symbols-outlined">wb_sunny</span>
       </div>
       <div>
-        <h1 class="text-xl font-bold tracking-tight">Waking Up</h1>
+        <h1 class="text-xl font-bold tracking-tight" data-i18n="appName">Waking Up</h1>
         <p class="text-xs text-gray-400 font-medium tracking-wide">PHASE 1: POSTURE CHECK</p>
       </div>
     </div>
