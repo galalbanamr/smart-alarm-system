@@ -184,6 +184,192 @@
             }
         }
     </style>
+    <style>
+        /* Legacy Functionality Styles (Calendar, Records) */
+        .content-section {
+            display: none;
+            height: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .content-section.hidden {
+            display: none;
+        }
+
+        /* Tailwind helper */
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Calendar */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            padding: 8px;
+            text-transform: uppercase;
+        }
+
+        .calendar-day {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-day:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .calendar-day.today {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            border: none;
+            min-height: auto;
+        }
+
+        .calendar-day-number {
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+        }
+
+        .calendar-day.today .calendar-day-number {
+            color: #34d399;
+            font-weight: 700;
+        }
+
+        .calendar-child-entry {
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 6px;
+            padding: 6px;
+            margin-top: 4px;
+            border-left: 2px solid #34d399;
+        }
+
+        .calendar-child-name {
+            font-weight: 600;
+            color: #34d399;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+        }
+
+        .calendar-time {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-top: 2px;
+            line-height: 1.4;
+        }
+
+        /* Records & Notifications */
+        .notification-card,
+        .record-card {
+            background: rgba(17, 25, 40, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .notification-card:hover,
+        .record-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .notification-icon,
+        .record-icon {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 10px;
+            flex-shrink: 0;
+        }
+
+        .notification-icon.not_standing,
+        .record-card.not-standing .record-icon {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .notification-title,
+        .record-title {
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .notification-details,
+        .record-details {
+            display: flex;
+            gap: 12px;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 4px;
+        }
+
+        .child-name {
+            color: #34d399;
+            font-weight: 500;
+        }
+
+        .unread-dot {
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.4);
+            width: 100%;
+        }
+    </style>
 </head>
 
 <body class="font-display bg-background-dark text-white antialiased overflow-hidden">
@@ -201,25 +387,32 @@
                 </div>
             </div>
             <nav class="flex-1 px-4 py-4 flex flex-col gap-2">
-                <a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 shadow-[0_0_10px_rgba(16,183,127,0.1)] transition-all"
-                    href="#">
+                <a class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 shadow-[0_0_10px_rgba(16,183,127,0.1)] transition-all cursor-pointer"
+                    data-section="overview">
                     <span class="material-symbols-outlined fill-1">dashboard</span>
-                    <span class="font-medium text-sm" data-i18n="overview">Overview</span>
+                    <span class="nav-text font-medium text-sm" data-i18n="overview">Overview</span>
                 </a>
-                <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                    href="#">
+                <a class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                    data-section="children">
                     <span class="material-symbols-outlined">child_care</span>
-                    <span class="font-medium text-sm" data-i18n="childStatus">Child Status</span>
+                    <span class="nav-text font-medium text-sm" data-i18n="myChildren">My Children</span>
                 </a>
-                <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                    href="#">
+                <a class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                    data-section="notifications">
+                    <span class="material-symbols-outlined">notifications</span>
+                    <span class="nav-text font-medium text-sm" data-i18n="notifications">Notifications</span>
+                    <span id="sidebarNotificationBadge"
+                        class="ml-auto bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full hidden">0</span>
+                </a>
+                <a class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                    data-section="records">
                     <span class="material-symbols-outlined">history</span>
-                    <span class="font-medium text-sm" data-i18n="dailyRecords">Daily Records</span>
+                    <span class="nav-text font-medium text-sm" data-i18n="records">Records</span>
                 </a>
-                <a class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-                    href="#">
-                    <span class="material-symbols-outlined">settings</span>
-                    <span class="font-medium text-sm" data-i18n="settings">Settings</span>
+                <a class="nav-item flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                    data-section="calendar">
+                    <span class="material-symbols-outlined">calendar_month</span>
+                    <span class="nav-text font-medium text-sm" data-i18n="calendar">Calendar</span>
                 </a>
             </nav>
             <div class="p-4 mt-auto">
@@ -286,7 +479,8 @@
             <div class="flex-1 overflow-y-auto p-8 pt-2">
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
                     <!-- CHILD STATUS GRID (Takes up 2 columns on large screens) -->
-                    <div class="xl:col-span-2 flex flex-col gap-6">
+                    <!-- OVERVIEW SECTION -->
+                    <div id="overviewSection" class="content-section h-full active xl:col-span-2 flex flex-col gap-6">
                         <div class="flex items-center justify-between mb-2">
                             <h3 class="text-xl font-bold text-white" data-i18n="childStatus">Child Status</h3>
                             <button id="refreshBtn"
@@ -294,302 +488,192 @@
                                 data-i18n="refresh">Refresh</button>
                         </div>
                         <div id="childrenList" class="flex flex-col gap-6">
-                            <!-- Card 1: Leo (In Progress) -->
-                            <div
-                                class="glass-panel rounded-xl p-6 relative overflow-hidden group hover:border-primary/40 transition-all duration-300">
-                                <!-- Background accent -->
-                                <div
-                                    class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none">
-                                </div>
-                                <div class="flex flex-col md:flex-row gap-6 relative z-10">
-                                    <!-- Profile Section -->
-                                    <div
-                                        class="flex items-center gap-4 md:border-r border-white/10 md:pr-6 md:min-w-[200px]">
-                                        <div class="relative">
-                                            <div class="size-16 rounded-full bg-center bg-cover border-2 border-primary/50 shadow-[0_0_15px_rgba(16,183,127,0.3)]"
-                                                data-alt="Portrait of child Leo smiling"
-                                                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDe-pu9ndICY4prop0GRtqtpMmTdbgVMCuZk_GPuwFXpynt0gCyE0jZ1tXb52srMVO-9AdBCjaBqcocEeUA1aIbA8sIbfaphoR8pfC77i0rkVgCPwoh4bl-kJlyGFrMGcU1Mv9R78vD48o-kAWKAoX878hxm_fCnWX_aITQDkvOauwF98UyNWlpKERrGdccb8-VB8fDAxY26Nefrp_O0NmNonk8lpBeYrBWmsVQTTu8Ab9dZIZdYuT3XwXmHkapBp8WodO8brmDkWo');">
-                                            </div>
-                                            <div
-                                                class="absolute -bottom-1 -right-1 bg-gray-900 rounded-full border border-gray-700 p-1">
-                                                <span
-                                                    class="material-symbols-outlined text-[16px] text-yellow-400">wb_sunny</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h4 class="text-xl font-bold text-white">Leo</h4>
-                                            <span
-                                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
-                                                data-i18n="inProgress">
-                                                In Progress
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <!-- Tasks Section -->
-                                    <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <!-- Task: Standing -->
-                                        <div
-                                            class="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between group-hover:shadow-[0_0_15px_rgba(16,183,127,0.1)] transition-all">
-                                            <div class="flex items-center gap-3">
-                                                <div class="bg-primary/20 p-2 rounded-full text-primary">
-                                                    <span class="material-symbols-outlined">accessibility_new</span>
-                                                </div>
-                                                <div>
-                                                    <p class="text-xs text-emerald-300 font-medium uppercase tracking-wider"
-                                                        data-i18n="standingCheck">
-                                                        Standing Check</p>
-                                                    <p class="text-sm font-bold text-white" data-i18n="completed">
-                                                        Completed</p>
-                                                    <p class="text-[10px] text-emerald-400/70">07:15 AM</p>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="size-6 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(16,183,127,0.6)]">
-                                                <span
-                                                    class="material-symbols-outlined text-white text-sm font-bold">check</span>
-                                            </div>
-                                        </div>
-                                        <!-- Task: Uniform -->
-                                        <div
-                                            class="p-4 rounded-lg bg-white/5 border border-white/5 flex items-center justify-between">
-                                            <div class="flex items-center gap-3">
-                                                <div class="bg-white/10 p-2 rounded-full text-gray-400">
-                                                    <span class="material-symbols-outlined">checkroom</span>
-                                                </div>
-                                                <div>
-                                                    <p class="text-xs text-gray-500 font-medium uppercase tracking-wider"
-                                                        data-i18n="uniformCheckWidget">
-                                                        Uniform Check</p>
-                                                    <p class="text-sm font-bold text-gray-300" data-i18n="pending">
-                                                        Pending</p>
-                                                    <p class="text-[10px] text-gray-600" data-i18n="waiting">Waiting...
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="size-6 rounded-full border-2 border-gray-600 flex items-center justify-center">
-                                                <!-- Empty circle -->
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Card 2: Mia (Complete) -->
-                            <div
-                                class="glass-panel rounded-xl p-6 relative overflow-hidden group hover:border-primary/40 transition-all duration-300">
-                                <div
-                                    class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none">
-                                </div>
-                                <div class="flex flex-col md:flex-row gap-6 relative z-10">
-                                    <!-- Profile Section -->
-                                    <div
-                                        class="flex items-center gap-4 md:border-r border-white/10 md:pr-6 md:min-w-[200px]">
-                                        <div class="relative">
-                                            <div class="size-16 rounded-full bg-center bg-cover border-2 border-primary shadow-[0_0_15px_rgba(16,183,127,0.6)]"
-                                                data-alt="Portrait of child Mia smiling"
-                                                style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8m6feKmc99Fwzc_E_K_sys53w3gCr9eZY8ogfKH9rHVM050SP5MgYiE3sB3j1yWtcpFkPrpJzz2gbecJJc6kVwBOpd4eXh6an40WSWeNWTlEI5zFmLETolFmUb5oroUfORlmKniZATW4vSNHKvs5WuVq6d5HHUbRO_2NgN1zcH4zALNUkIFywiHApgYZ6hPMzcejYLj1viPDEB7fkWxgF9sJ0MO0qj0UrhttGWtsVOeJZ5LebkW8-6dA10yIUDZZfsAnVbT2Rsls');">
-                                            </div>
-                                            <div
-                                                class="absolute -bottom-1 -right-1 bg-gray-900 rounded-full border border-gray-700 p-1">
-                                                <span
-                                                    class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h4 class="text-xl font-bold text-white">Mia</h4>
-                                            <span
-                                                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
-                                                data-i18n="allComplete">
-                                                All Complete
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <!-- Tasks Section -->
-                                    <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <!-- Task: Standing -->
-                                        <div
-                                            class="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between group-hover:shadow-[0_0_15px_rgba(16,183,127,0.1)] transition-all">
-                                            <div class="flex items-center gap-3">
-                                                <div class="bg-primary/20 p-2 rounded-full text-primary">
-                                                    <span class="material-symbols-outlined">accessibility_new</span>
-                                                </div>
-                                                <div>
-                                                    <p class="text-xs text-emerald-300 font-medium uppercase tracking-wider"
-                                                        data-i18n="standingCheck">
-                                                        Standing Check</p>
-                                                    <p class="text-sm font-bold text-white" data-i18n="completed">
-                                                        Completed</p>
-                                                    <p class="text-[10px] text-emerald-400/70">07:05 AM</p>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="size-6 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(16,183,127,0.6)]">
-                                                <span
-                                                    class="material-symbols-outlined text-white text-sm font-bold">check</span>
-                                            </div>
-                                        </div>
-                                        <!-- Task: Uniform -->
-                                        <div
-                                            class="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between group-hover:shadow-[0_0_15px_rgba(16,183,127,0.1)] transition-all">
-                                            <div class="flex items-center gap-3">
-                                                <div class="bg-primary/20 p-2 rounded-full text-primary">
-                                                    <span class="material-symbols-outlined">checkroom</span>
-                                                </div>
-                                                <div>
-                                                    <p class="text-xs text-emerald-300 font-medium uppercase tracking-wider"
-                                                        data-i18n="uniformCheckWidget">
-                                                        Uniform Check</p>
-                                                    <p class="text-sm font-bold text-white" data-i18n="verified">
-                                                        Verified</p>
-                                                    <p class="text-[10px] text-emerald-400/70">07:10 AM</p>
-                                                </div>
-                                            </div>
-                                            <div
-                                                class="size-6 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(16,183,127,0.6)]">
-                                                <span
-                                                    class="material-symbols-outlined text-white text-sm font-bold">check</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- Quick Actions -->
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
-                                <button
-                                    class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
-                                    <span
-                                        class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">add_task</span>
-                                    <span class="text-sm font-medium text-gray-400 group-hover:text-white"
-                                        data-i18n="addTask">Add
-                                        Task</span>
-                                </button>
-                                <button
-                                    class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
-                                    <span
-                                        class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">videocam</span>
-                                    <span class="text-sm font-medium text-gray-400 group-hover:text-white"
-                                        data-i18n="liveView">Live
-                                        View</span>
-                                </button>
-                                <button
-                                    class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
-                                    <span
-                                        class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">mic</span>
-                                    <span class="text-sm font-medium text-gray-400 group-hover:text-white"
-                                        data-i18n="broadcast">Broadcast</span>
-                                </button>
-                                <button
-                                    class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
-                                    <span
-                                        class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">history_edu</span>
-                                    <span class="text-sm font-medium text-gray-400 group-hover:text-white"
-                                        data-i18n="logNote">Log
-                                        Note</span>
-                                </button>
+                            <!-- Children loaded via JS -->
+                            <div class="glass-panel p-6 rounded-xl flex items-center justify-center text-gray-400">
+                                <span class="animate-pulse">Loading child status...</span>
                             </div>
                         </div>
-                        <!-- SIDEBAR: FEED & STATS -->
-                        <div class="flex flex-col gap-6">
-                            <!-- Daily Stats Widget -->
-                            <div class="glass-panel rounded-xl p-6">
-                                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-primary">monitoring</span>
-                                    <span data-i18n="dailyPerformance">Daily Performance</span>
-                                </h3>
-                                <div class="flex items-center justify-center py-4 relative">
-                                    <!-- Chart Visual using conic-gradient -->
-                                    <div class="size-40 rounded-full relative flex items-center justify-center"
-                                        style="background: conic-gradient(#10b77f 85%, rgba(255,255,255,0.05) 0%); box-shadow: 0 0 20px rgba(16,183,127,0.2);">
-                                        <div class="absolute inset-0 rounded-full blur-sm bg-primary/20 -z-10"></div>
-                                        <div
-                                            class="size-32 bg-[#111827] rounded-full flex flex-col items-center justify-center z-10 border border-white/5">
-                                            <span id="standingToday" class="text-3xl font-black text-white">0</span>
-                                            <span class="text-xs text-gray-400" data-i18n="standingToday">Standing
-                                                Today</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mt-4 grid grid-cols-2 gap-2 text-center">
-                                    <div class="p-2 rounded bg-white/5">
-                                        <p class="text-xs text-gray-400" data-i18n="streak">Streak</p>
-                                        <p class="text-lg font-bold text-primary">12 Days</p>
-                                    </div>
-                                    <div class="p-2 rounded bg-white/5">
-                                        <p class="text-xs text-gray-400" data-i18n="avgTime">Avg Time</p>
-                                        <p class="text-lg font-bold text-white">14m</p>
+
+                        <!-- Quick Actions -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
+                            <button onclick="switchSection('children')"
+                                class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
+                                <span
+                                    class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">child_care</span>
+                                <span class="text-sm font-medium text-gray-400 group-hover:text-white"
+                                    data-i18n="myChildren">My Children</span>
+                            </button>
+                            <button onclick="switchSection('notifications')"
+                                class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
+                                <span
+                                    class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">notifications</span>
+                                <span class="text-sm font-medium text-gray-400 group-hover:text-white"
+                                    data-i18n="notifications">Notifications</span>
+                            </button>
+                            <button onclick="switchSection('records')"
+                                class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
+                                <span
+                                    class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">history</span>
+                                <span class="text-sm font-medium text-gray-400 group-hover:text-white"
+                                    data-i18n="records">Records</span>
+                            </button>
+                            <button onclick="switchSection('calendar')"
+                                class="flex flex-col items-center justify-center p-4 rounded-xl glass-panel hover:bg-white/5 transition-colors border border-dashed border-gray-700 hover:border-primary/50 group">
+                                <span
+                                    class="material-symbols-outlined text-gray-400 group-hover:text-primary mb-2">calendar_month</span>
+                                <span class="text-sm font-medium text-gray-400 group-hover:text-white"
+                                    data-i18n="calendar">Calendar</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- CHILDREN SECTION -->
+                    <div id="childrenSection" class="content-section hidden h-full xl:col-span-2">
+                        <h2 class="text-2xl font-bold text-white mb-6" data-i18n="myChildren">My Children</h2>
+                        <!-- Note: In JS checkIf logic reuse childrenList ID or update logic. 
+                              For now, I'll allow loadChildren to populate the Overview list.
+                              If this section is active, I might need to CLONE the list or use a different ID.
+                              Actually, let's make this section mostly informational or duplicate the list container logic.
+                              I'll use a new ID 'allChildrenList' and update JS to populate both if present. -->
+                        <div id="allChildrenList" class="flex flex-col gap-6"></div>
+                    </div>
+
+                    <!-- NOTIFICATIONS SECTION -->
+                    <div id="notificationsSection" class="content-section hidden h-full xl:col-span-2">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-white" data-i18n="notifications">Notifications</h2>
+                            <button id="markAllReadBtn"
+                                class="glass-panel px-4 py-2 rounded-lg text-primary text-sm hover:bg-white/10 transition-colors"
+                                data-i18n="markAllRead">Mark All Read</button>
+                        </div>
+                        <div id="notificationsList" class="flex flex-col gap-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- RECORDS SECTION -->
+                    <div id="recordsSection" class="content-section hidden h-full xl:col-span-2">
+                        <h2 class="text-2xl font-bold text-white mb-6" data-i18n="records">Records</h2>
+                        <div id="recordsList" class="flex flex-col gap-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- CALENDAR SECTION -->
+                    <div id="calendarSection" class="content-section hidden h-full xl:col-span-2">
+                        <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                            <h2 class="text-2xl font-bold text-white" data-i18n="calendar">Calendar</h2>
+                            <div class="flex items-center gap-4 glass-panel p-1 rounded-lg">
+                                <button id="prevMonthBtn"
+                                    class="px-3 py-1.5 rounded-md hover:bg-white/10 text-white text-sm transition-colors">◀</button>
+                                <span id="currentMonth"
+                                    class="text-sm font-bold text-primary min-w-[120px] text-center">Month Year</span>
+                                <button id="nextMonthBtn"
+                                    class="px-3 py-1.5 rounded-md hover:bg-white/10 text-white text-sm transition-colors">▶</button>
+                            </div>
+                        </div>
+                        <div id="calendarContainer" class="glass-panel p-4 md:p-6 rounded-xl overflow-x-auto">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                    <!-- SIDEBAR: FEED & STATS -->
+                    <div class="flex flex-col gap-6">
+                        <!-- Daily Stats Widget -->
+                        <div class="glass-panel rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">monitoring</span>
+                                <span data-i18n="dailyPerformance">Daily Performance</span>
+                            </h3>
+                            <div class="flex items-center justify-center py-4 relative">
+                                <!-- Chart Visual using conic-gradient -->
+                                <div class="size-40 rounded-full relative flex items-center justify-center"
+                                    style="background: conic-gradient(#10b77f 85%, rgba(255,255,255,0.05) 0%); box-shadow: 0 0 20px rgba(16,183,127,0.2);">
+                                    <div class="absolute inset-0 rounded-full blur-sm bg-primary/20 -z-10"></div>
+                                    <div
+                                        class="size-32 bg-[#111827] rounded-full flex flex-col items-center justify-center z-10 border border-white/5">
+                                        <span id="standingToday" class="text-3xl font-black text-white">0</span>
+                                        <span class="text-xs text-gray-400" data-i18n="standingToday">Standing
+                                            Today</span>
                                     </div>
                                 </div>
                             </div>
-                            <!-- Notification Feed -->
-                            <div class="glass-panel rounded-xl flex-1 flex flex-col overflow-hidden min-h-[300px]">
-                                <div class="p-4 border-b border-glass-border flex justify-between items-center">
-                                    <h3 class="text-lg font-bold text-white" data-i18n="liveFeed">Live Feed</h3>
-                                    <span class="size-2 bg-red-500 rounded-full animate-pulse"></span>
+                            <div class="mt-4 grid grid-cols-2 gap-2 text-center">
+                                <div class="p-2 rounded bg-white/5">
+                                    <p class="text-xs text-gray-400" data-i18n="streak">Streak</p>
+                                    <p class="text-lg font-bold text-primary">12 Days</p>
                                 </div>
-                                <div id="notificationsList" class="overflow-y-auto p-4 flex flex-col gap-4">
-                                    <!-- Feed Item 1 -->
-                                    <div class="flex gap-3 relative pb-4">
-                                        <!-- Timeline line -->
-                                        <div class="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-800"></div>
-                                        <div
-                                            class="relative z-10 size-6 rounded-full bg-primary/20 border border-primary flex items-center justify-center shrink-0 mt-1">
-                                            <span
-                                                class="material-symbols-outlined text-[14px] text-primary">check</span>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm text-gray-200"><span
-                                                    class="font-bold text-white">Leo</span>
-                                                completed standing check.</p>
-                                            <p class="text-xs text-gray-500 mt-1">Today, 7:15 AM</p>
-                                        </div>
+                                <div class="p-2 rounded bg-white/5">
+                                    <p class="text-xs text-gray-400" data-i18n="avgTime">Avg Time</p>
+                                    <p class="text-lg font-bold text-white">14m</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Notification Feed -->
+                        <div class="glass-panel rounded-xl flex-1 flex flex-col overflow-hidden min-h-[300px]">
+                            <div class="p-4 border-b border-glass-border flex justify-between items-center">
+                                <h3 class="text-lg font-bold text-white" data-i18n="liveFeed">Live Feed</h3>
+                                <span class="size-2 bg-red-500 rounded-full animate-pulse"></span>
+                            </div>
+                            <div id="notificationsList" class="overflow-y-auto p-4 flex flex-col gap-4">
+                                <!-- Feed Item 1 -->
+                                <div class="flex gap-3 relative pb-4">
+                                    <!-- Timeline line -->
+                                    <div class="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-800"></div>
+                                    <div
+                                        class="relative z-10 size-6 rounded-full bg-primary/20 border border-primary flex items-center justify-center shrink-0 mt-1">
+                                        <span class="material-symbols-outlined text-[14px] text-primary">check</span>
                                     </div>
-                                    <!-- Feed Item 2 -->
-                                    <div class="flex gap-3 relative pb-4">
-                                        <div class="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-800"></div>
-                                        <div
-                                            class="relative z-10 size-6 rounded-full bg-primary/20 border border-primary flex items-center justify-center shrink-0 mt-1">
-                                            <span
-                                                class="material-symbols-outlined text-[14px] text-primary">checkroom</span>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm text-gray-200"><span
-                                                    class="font-bold text-white">Mia</span>
-                                                verified uniform.</p>
-                                            <p class="text-xs text-gray-500 mt-1">Today, 7:10 AM</p>
-                                        </div>
+                                    <div>
+                                        <p class="text-sm text-gray-200"><span class="font-bold text-white">Leo</span>
+                                            completed standing check.</p>
+                                        <p class="text-xs text-gray-500 mt-1">Today, 7:15 AM</p>
                                     </div>
-                                    <!-- Feed Item 3 -->
-                                    <div class="flex gap-3 relative pb-4">
-                                        <div class="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-800"></div>
-                                        <div
-                                            class="relative z-10 size-6 rounded-full bg-primary/20 border border-primary flex items-center justify-center shrink-0 mt-1">
-                                            <span
-                                                class="material-symbols-outlined text-[14px] text-primary">accessibility_new</span>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm text-gray-200"><span
-                                                    class="font-bold text-white">Mia</span>
-                                                completed standing check.</p>
-                                            <p class="text-xs text-gray-500 mt-1">Today, 7:05 AM</p>
-                                        </div>
+                                </div>
+                                <!-- Feed Item 2 -->
+                                <div class="flex gap-3 relative pb-4">
+                                    <div class="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-800"></div>
+                                    <div
+                                        class="relative z-10 size-6 rounded-full bg-primary/20 border border-primary flex items-center justify-center shrink-0 mt-1">
+                                        <span
+                                            class="material-symbols-outlined text-[14px] text-primary">checkroom</span>
                                     </div>
-                                    <!-- Feed Item 4 -->
-                                    <div class="flex gap-3 relative">
-                                        <div
-                                            class="relative z-10 size-6 rounded-full bg-yellow-500/20 border border-yellow-500 flex items-center justify-center shrink-0 mt-1">
-                                            <span
-                                                class="material-symbols-outlined text-[14px] text-yellow-500">light_mode</span>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm text-gray-200">Morning Routine Started.</p>
-                                            <p class="text-xs text-gray-500 mt-1">Today, 6:45 AM</p>
-                                        </div>
+                                    <div>
+                                        <p class="text-sm text-gray-200"><span class="font-bold text-white">Mia</span>
+                                            verified uniform.</p>
+                                        <p class="text-xs text-gray-500 mt-1">Today, 7:10 AM</p>
+                                    </div>
+                                </div>
+                                <!-- Feed Item 3 -->
+                                <div class="flex gap-3 relative pb-4">
+                                    <div class="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-800"></div>
+                                    <div
+                                        class="relative z-10 size-6 rounded-full bg-primary/20 border border-primary flex items-center justify-center shrink-0 mt-1">
+                                        <span
+                                            class="material-symbols-outlined text-[14px] text-primary">accessibility_new</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-200"><span class="font-bold text-white">Mia</span>
+                                            completed standing check.</p>
+                                        <p class="text-xs text-gray-500 mt-1">Today, 7:05 AM</p>
+                                    </div>
+                                </div>
+                                <!-- Feed Item 4 -->
+                                <div class="flex gap-3 relative">
+                                    <div
+                                        class="relative z-10 size-6 rounded-full bg-yellow-500/20 border border-yellow-500 flex items-center justify-center shrink-0 mt-1">
+                                        <span
+                                            class="material-symbols-outlined text-[14px] text-yellow-500">light_mode</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-200">Morning Routine Started.</p>
+                                        <p class="text-xs text-gray-500 mt-1">Today, 6:45 AM</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
         </main>
     </div>
     <script>

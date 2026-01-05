@@ -81,7 +81,51 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Initial translation update
     updateNavigationTexts();
+
+    // Setup Navigation
+    document.querySelectorAll('[data-section]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = link.dataset.section;
+            if (section) switchSection(section);
+        });
+    });
 });
+
+// Navigation Function
+function switchSection(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('.content-section').forEach(el => {
+        el.classList.add('hidden');
+        el.classList.remove('active');
+    });
+
+    // Show target section
+    const target = document.getElementById(sectionId + 'Section');
+    if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('active');
+    }
+
+    // Update Sidebar Active State
+    document.querySelectorAll('.nav-item').forEach(el => {
+        el.classList.remove('bg-primary/10', 'text-primary', 'border', 'border-primary/20', 'shadow-[0_0_10px_rgba(16,183,127,0.1)]');
+        el.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-white/5');
+
+        if (el.dataset.section === sectionId) {
+            el.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-white/5');
+            el.classList.add('bg-primary/10', 'text-primary', 'border', 'border-primary/20', 'shadow-[0_0_10px_rgba(16,183,127,0.1)]');
+        }
+    });
+
+    // Specific logic for sections
+    if (sectionId === 'calendar') {
+        loadCalendar();
+    }
+}
+
+// Global expose for HTML onclicks
+window.switchSection = switchSection;
 
 function updateNavigationTexts() {
     // Update navigation items
@@ -224,46 +268,53 @@ function loadNotifications() {
 function loadChildren() {
     const children = authManager.getChildrenForParent(currentParent.userId);
     const childrenList = document.getElementById('childrenList');
+    const allChildrenList = document.getElementById('allChildrenList');
+
+    if (!childrenList && !allChildrenList) return;
+
+    let content = '';
 
     if (children.length === 0) {
-        childrenList.innerHTML = `<div class="empty-state">${translationManager.t('noChildrenRegistered')}</div>`;
-        return;
+        content = `<div class="empty-state">${translationManager.t('noChildrenRegistered')}</div>`;
+    } else {
+        content = children.map(child => {
+            const childRecords = recordsManager.getChildRecords(child.id);
+            const checkStatus = recordsManager.getChildCheckStatus(child.id);
+            const recentRecord = childRecords[0];
+            const lastActivity = recentRecord ? getTimeAgo(new Date(recentRecord.timestamp)) : 'Never';
+
+            return `
+                <div class="child-card">
+                    <div class="child-card-header">
+                        <div class="child-avatar">${child.name.charAt(0).toUpperCase()}</div>
+                        <div class="child-info">
+                            <h3>${child.name}</h3>
+                            <p>@${child.username} • ${translationManager.t('lastActivity')}: ${lastActivity}</p>
+                        </div>
+                    </div>
+                        <div class="child-checks">
+                        <div class="check-item ${checkStatus.standingComplete ? 'complete' : 'pending'}">
+                            <span class="check-icon">${checkStatus.standingComplete ? '✅' : '⏳'}</span>
+                            <span class="check-label">${translationManager.t('standingUp')}</span>
+                        </div>
+                        <div class="check-item ${checkStatus.clothingComplete ? 'complete' : 'pending'}">
+                            <span class="check-icon">${checkStatus.clothingComplete ? '✅' : '⏳'}</span>
+                            <span class="check-label">${translationManager.t('wearingUniform')}</span>
+                        </div>
+                    </div>
+                    <div class="child-stats">
+                        <div class="child-stat">
+                            <div class="child-stat-value">${childRecords.length}</div>
+                            <div class="child-stat-label">${translationManager.t('totalRecordsLabel')}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
 
-    childrenList.innerHTML = children.map(child => {
-        const childRecords = recordsManager.getChildRecords(child.id);
-        const checkStatus = recordsManager.getChildCheckStatus(child.id);
-        const recentRecord = childRecords[0];
-        const lastActivity = recentRecord ? getTimeAgo(new Date(recentRecord.timestamp)) : 'Never';
-
-        return `
-            <div class="child-card">
-                <div class="child-card-header">
-                    <div class="child-avatar">${child.name.charAt(0).toUpperCase()}</div>
-                    <div class="child-info">
-                        <h3>${child.name}</h3>
-                        <p>@${child.username} • ${translationManager.t('lastActivity')}: ${lastActivity}</p>
-                    </div>
-                </div>
-                    <div class="child-checks">
-                    <div class="check-item ${checkStatus.standingComplete ? 'complete' : 'pending'}">
-                        <span class="check-icon">${checkStatus.standingComplete ? '✅' : '⏳'}</span>
-                        <span class="check-label">${translationManager.t('standingUp')}</span>
-                    </div>
-                    <div class="check-item ${checkStatus.clothingComplete ? 'complete' : 'pending'}">
-                        <span class="check-icon">${checkStatus.clothingComplete ? '✅' : '⏳'}</span>
-                        <span class="check-label">${translationManager.t('wearingUniform')}</span>
-                    </div>
-                </div>
-                <div class="child-stats">
-                    <div class="child-stat">
-                        <div class="child-stat-value">${childRecords.length}</div>
-                        <div class="child-stat-label">${translationManager.t('totalRecordsLabel')}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
+    if (childrenList) childrenList.innerHTML = content;
+    if (allChildrenList) allChildrenList.innerHTML = content;
 }
 
 function loadRecords() {
