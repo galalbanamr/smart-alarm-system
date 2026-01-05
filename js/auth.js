@@ -7,27 +7,46 @@ export class AuthManager {
     constructor() {
         this.STORAGE_KEY = 'standing_detection_users';
         this.SESSION_KEY = 'standing_detection_session';
-        this.initDefaultParent();
+        this.initDefaultUsers();
     }
 
     /**
-     * Initialize default parent if none exists
+     * Initialize default users if none exist
      */
-    initDefaultParent() {
+    initDefaultUsers() {
         const users = this.getAllUsers();
-        const parents = users.filter(u => u.role === 'parent');
-        
-        if (parents.length === 0) {
+        let parent = users.find(u => u.role === 'parent' && u.username === 'parent');
+
+        if (!parent) {
             // Create default parent
-            const defaultParent = {
-                id: 'parent_1',
+            parent = {
+                id: 'parent_default',
                 username: 'parent',
-                password: 'parent123', // In production, this should be hashed
+                password: 'parent123',
                 role: 'parent',
                 name: 'Default Parent',
                 createdAt: new Date().toISOString()
             };
-            this.saveUser(defaultParent);
+            this.saveUser(parent);
+            console.log('Default parent created');
+        }
+
+        // Check for default child
+        const child = users.find(u => u.role === 'child' && u.username === 'child');
+        if (!child) {
+            // Create default child linked to default parent
+            const defaultChild = {
+                id: 'child_default',
+                username: 'child',
+                password: '123',
+                role: 'child',
+                name: 'Alex',
+                fatherName: parent.name,
+                parentId: parent.id,
+                createdAt: new Date().toISOString()
+            };
+            this.saveUser(defaultChild);
+            console.log('Default child created');
         }
     }
 
@@ -35,8 +54,13 @@ export class AuthManager {
      * Get all users from storage
      */
     getAllUsers() {
-        const data = localStorage.getItem(this.STORAGE_KEY);
-        return data ? JSON.parse(data) : [];
+        try {
+            const data = localStorage.getItem(this.STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            console.error('Error reading from localStorage:', e);
+            return [];
+        }
     }
 
     /**
@@ -45,13 +69,13 @@ export class AuthManager {
     saveUser(user) {
         const users = this.getAllUsers();
         const existingIndex = users.findIndex(u => u.id === user.id || u.username === user.username);
-        
+
         if (existingIndex >= 0) {
             users[existingIndex] = user;
         } else {
             users.push(user);
         }
-        
+
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(users));
     }
 
@@ -116,20 +140,20 @@ export class AuthManager {
     }
 
     /**
-     * Login child (requires name, password, and father name)
+     * Login child (requires name/username, password, and father name)
      */
-    loginChild(name, password, fatherName) {
+    loginChild(identifier, password, fatherName) {
         const users = this.getAllUsers();
-        const child = users.find(u => 
-            u.role === 'child' && 
-            u.name.toLowerCase() === name.toLowerCase() && 
+        const child = users.find(u =>
+            u.role === 'child' &&
+            (u.name.toLowerCase() === identifier.toLowerCase() || u.username.toLowerCase() === identifier.toLowerCase()) &&
             u.password === password &&
-            u.fatherName && 
+            u.fatherName &&
             u.fatherName.toLowerCase() === fatherName.toLowerCase()
         );
 
         if (!child) {
-            return { success: false, message: 'Invalid credentials. Please check name, password, and father\'s name.' };
+            return { success: false, message: 'Invalid credentials. Please check details.' };
         }
 
         // Create session

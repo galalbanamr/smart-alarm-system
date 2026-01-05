@@ -222,6 +222,7 @@ function onPoseResults(results, session, standingDetector, clothingDetector, uiC
                 buzzerController.turnOff().then(success => {
                     if (success) {
                         console.log('✅ ESP32 Buzzer and LED turned OFF successfully - child is standing!');
+                        uiController.showBuzzerOffSuccess();
                     } else {
                         console.warn('⚠️ Failed to turn off buzzer/LED - check:');
                         console.warn('   1. ESP32 is powered on and connected to WiFi');

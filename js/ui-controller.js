@@ -34,9 +34,7 @@ export class UIController {
         this.taskLabel = document.getElementById('taskLabel');
 
         // Mission Step elements
-        this.step1Container = document.getElementById('step1Container');
-        this.step1Icon = document.getElementById('step1Icon');
-        this.step1Status = document.getElementById('step1Status');
+        // Step 1: Posture Check (was Step 2)
 
         this.step2Container = document.getElementById('step2Container');
         this.step2Glow = document.getElementById('step2Glow');
@@ -405,5 +403,40 @@ export class UIController {
             this.statusOverlay.style.display = 'flex'; // Use flex for centering in new UI
             this.statusOverlay.classList.remove('hidden');
         }
+    }
+
+    /**
+     * Show success message when buzzer is turned off
+     */
+    showBuzzerOffSuccess() {
+        // Create a temporary notification
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-24 left-1/2 -translate-x-1/2 glass-panel px-6 py-4 rounded-xl flex items-center gap-4 z-50 animate-bounce shadow-neon';
+        notification.innerHTML = `
+            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined">notifications_off</span>
+            </div>
+            <div>
+                <h3 class="font-bold text-white">Alarm Silenced!</h3>
+                <p class="text-xs text-gray-300">Great job standing up!</p>
+            </div>
+        `;
+        document.body.appendChild(notification);
+
+        // Update status overlay text if visible
+        this.setIcon('🔕');
+        // Safely access translationManager or fallback
+        const title = (typeof translationManager !== 'undefined') ? translationManager.t('alarmSilenced') : 'Alarm Silenced!';
+        const subtitle = (typeof translationManager !== 'undefined') ? translationManager.t('preparingUniformCheck') : 'Get ready for uniform check...';
+
+        this.setText(title || 'Alarm Silenced!');
+        this.setSubtext(subtitle || 'Get ready for uniform check...');
+
+        // Remove notification after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 3000);
     }
 }

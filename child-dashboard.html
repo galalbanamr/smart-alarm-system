@@ -107,18 +107,11 @@
 </head>
 
 <body class="bg-background-dark text-white font-display overflow-hidden h-screen flex flex-col">
-  <!-- Status Overlay (Moved to top for safety) -->
-  <div id="statusOverlay" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-    <div id="statusCard" class="glass-panel p-8 rounded-2xl text-center max-w-md">
-      <div id="statusIconLarge" class="text-6xl mb-4">⏳</div>
-      <div id="statusTextLarge" class="text-2xl font-bold text-white mb-2">Initializing...</div>
-      <div id="statusSubtextLarge" class="text-gray-400">Please wait</div>
-    </div>
-  </div>
+
 
   <!-- Top Navigation -->
   <header
-    class="h-20 flex items-center justify-between px-8 border-b border-white/5 bg-[#0f0f1e]/80 backdrop-blur-md relative z-20">
+    class="h-16 lg:h-20 flex items-center justify-between px-4 lg:px-8 border-b border-white/5 bg-[#0f0f1e]/80 backdrop-blur-md relative z-20">
     <div class="flex items-center gap-4">
       <div
         class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white shadow-neon">
@@ -147,7 +140,7 @@
         </select>
       </div>
       <!-- Streak Counter -->
-      <div class="glass-panel px-4 py-2 rounded-full flex items-center gap-3">
+      <div class="hidden md:flex glass-panel px-4 py-2 rounded-full items-center gap-3">
         <span class="material-symbols-outlined text-orange-400">local_fire_department</span>
         <div class="flex flex-col leading-none">
           <span class="text-xs text-gray-400 uppercase font-bold">Streak</span>
@@ -173,60 +166,39 @@
     </div>
   </header>
   <!-- Main Content Area -->
-  <main class="flex-1 flex p-6 gap-6 relative z-10 overflow-hidden">
+  <main class="flex-1 flex flex-col lg:flex-row p-0 lg:p-2 gap-0 lg:gap-2 relative z-10 overflow-hidden min-h-0">
     <!-- Left Sidebar: Timeline & Steps -->
     <aside class="w-72 flex flex-col gap-4 hidden lg:flex">
       <div class="glass-panel rounded-2xl p-5 flex-1 flex flex-col">
         <h3 class="text-sm font-bold text-gray-400 uppercase mb-6 tracking-wider">Mission Steps</h3>
-        <div class="space-y-6 relative">
-          <!-- Connecting Line -->
-          <div class="absolute left-[19px] top-4 bottom-4 w-0.5 bg-white/10 -z-10"></div>
-          <!-- Step 1: Wake Up (Done) -->
-          <div id="step1Container" class="flex items-start gap-4 opacity-50">
-            <div id="step1IconContainer"
-              class="w-10 h-10 rounded-full bg-primary/20 border border-primary text-primary flex items-center justify-center shrink-0">
-              <span id="step1Icon" class="material-symbols-outlined">check</span>
+        <!-- Connecting Line -->
+        <div class="absolute left-[19px] top-4 bottom-4 w-0.5 bg-white/10 -z-10"></div>
+
+        <!-- Step 1: Standing/Posture Check (Active) -->
+        <div id="step2Container" class="flex items-start gap-4">
+          <div class="relative">
+            <div id="step2Glow" class="absolute inset-0 bg-accent-orange blur-lg opacity-40 rounded-full animate-pulse">
             </div>
-            <div class="pt-2">
-              <p class="font-bold text-lg">Wake Up</p>
-              <p id="step1Status" class="text-sm text-gray-400">07:00 AM</p>
-            </div>
-          </div>
-          <!-- Step 2: Posture Check (Active) -->
-          <div id="step2Container" class="flex items-start gap-4">
-            <div class="relative">
-              <div id="step2Glow"
-                class="absolute inset-0 bg-accent-orange blur-lg opacity-40 rounded-full animate-pulse"></div>
-              <div id="statusIconContainer"
-                class="w-10 h-10 rounded-full bg-accent-orange text-white flex items-center justify-center shrink-0 relative z-10 shadow-neon-orange">
-                <span id="statusIcon" class="material-symbols-outlined animate-spin-slow">cached</span>
-              </div>
-            </div>
-            <div class="pt-1">
-              <p class="font-bold text-lg text-white">Posture Check</p>
-              <p id="step2Status" class="text-sm text-accent-orange font-medium">Scanning...</p>
+            <div id="statusIconContainer"
+              class="w-10 h-10 rounded-full bg-accent-orange text-white flex items-center justify-center shrink-0 relative z-10 shadow-neon-orange">
+              <span id="statusIcon" class="material-symbols-outlined animate-spin-slow">cached</span>
             </div>
           </div>
-          <!-- Step 3: Uniform Check (Pending) -->
-          <div id="step3Container" class="flex items-start gap-4 opacity-30">
-            <div id="step3IconContainer"
-              class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-              <span id="step3Icon" class="text-sm font-bold">3</span>
-            </div>
-            <div class="pt-2">
-              <p class="font-bold text-lg">Uniform</p>
-              <p id="step3Status" class="text-sm text-gray-400">Next Up</p>
-            </div>
+          <div class="pt-1">
+            <p class="font-bold text-lg text-white">Posture Check</p>
+            <p id="step2Status" class="text-sm text-accent-orange font-medium">Scanning...</p>
           </div>
-          <!-- Step 4: Pending -->
-          <div class="flex items-start gap-4 opacity-30">
-            <div
-              class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-              <span class="text-sm font-bold">4</span>
-            </div>
-            <div class="pt-2">
-              <p class="font-bold text-lg">Breakfast</p>
-            </div>
+        </div>
+
+        <!-- Step 2: Uniform Check (Pending) -->
+        <div id="step3Container" class="flex items-start gap-4 opacity-30">
+          <div id="step3IconContainer"
+            class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+            <span id="step3Icon" class="text-sm font-bold">2</span>
+          </div>
+          <div class="pt-2">
+            <p class="font-bold text-lg">Uniform</p>
+            <p id="step3Status" class="text-sm text-gray-400">Next Up</p>
           </div>
         </div>
         <div class="mt-auto pt-6 border-t border-white/10">
@@ -239,10 +211,10 @@
       </div>
     </aside>
     <!-- Central Viewport: AR Camera -->
-    <section class="flex-1 relative flex flex-col justify-center items-center">
-      <!-- Camera Container -->
+    <section class="flex-1 relative flex flex-col w-full" style="height: calc(100vh - 80px); min-height: 500px;">
+      <!-- Camera Container (Restored flex layout) -->
       <div
-        class="relative w-full h-full max-h-[800px] bg-black rounded-3xl overflow-hidden border-[3px] border-accent-orange shadow-neon-orange group">
+        class="absolute inset-0 bg-black rounded-none lg:rounded-3xl overflow-hidden border-0 lg:border-[3px] border-accent-orange shadow-neon-orange group">
         <!-- Background Video Placeholder -->
         <div class="absolute inset-0 bg-cover bg-center opacity-80"
           data-alt="A child standing in a bedroom facing the camera"
@@ -253,6 +225,15 @@
         <!-- Camera Overlay Gradient (Vignette) -->
         <div
           class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 z-10 pointer-events-none">
+        </div>
+
+        <!-- Status Overlay (Moved inside camera view) -->
+        <div id="statusOverlay" class="hidden absolute inset-0 bg-black/80 flex items-center justify-center z-50">
+          <div id="statusCard" class="glass-panel p-8 rounded-2xl text-center max-w-md">
+            <div id="statusIconLarge" class="text-6xl mb-4">⏳</div>
+            <div id="statusTextLarge" class="text-2xl font-bold text-white mb-2">Initializing...</div>
+            <div id="statusSubtextLarge" class="text-gray-400">Please wait</div>
+          </div>
         </div>
 
         <!-- Video and Canvas for Detection -->
@@ -269,7 +250,7 @@
         </div>
         <!-- Center AR Reticle -->
         <div
-          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] z-20 pointer-events-none flex items-center justify-center">
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70vmin] h-[70vmin] max-w-[400px] max-h-[400px] z-20 pointer-events-none flex items-center justify-center">
           <!-- Outer Ring (Static) -->
           <div class="absolute inset-0 border border-white/20 rounded-full"></div>
           <!-- Inner Ring (Pulsing Orange for Active Phase) -->
@@ -288,7 +269,8 @@
           </div>
         </div>
         <!-- AR Floating Cards (Bottom) -->
-        <div class="absolute bottom-10 left-0 right-0 z-30 flex justify-center items-end gap-4 px-10">
+        <div
+          class="absolute bottom-4 lg:bottom-10 left-0 right-0 z-30 flex flex-col-reverse md:flex-row justify-center items-center md:items-end gap-2 md:gap-4 px-4 lg:px-10">
           <!-- Timer Card -->
           <div id="timerCard"
             class="glass-panel p-4 rounded-xl flex flex-col items-center min-w-[140px] transform transition hover:scale-105">
