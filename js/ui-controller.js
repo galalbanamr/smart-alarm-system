@@ -81,6 +81,17 @@ export class UIController {
     }
 
     /**
+     * Helper to update body class without wiping existing classes
+     * @param {string|null} newClass - Class to add ('standing', 'not-standing', or null)
+     */
+    updateBodyStatus(newClass) {
+        this.body.classList.remove('standing', 'not-standing');
+        if (newClass) {
+            this.body.classList.add(newClass);
+        }
+    }
+
+    /**
      * Update the UI based on standing and clothing status
      * @param {boolean} isStanding - Whether the person is standing
      * @param {boolean} isWearingUniform - Whether the person is wearing uniform
@@ -137,12 +148,12 @@ export class UIController {
                 this.setCardClass('status-card standing');
                 this.setOverlayClass('status-overlay standing');
                 this.setRingClass('status-ring standing');
-                this.body.className = 'standing';
+                this.updateBodyStatus('standing');
             } else {
                 this.setCardClass('status-card not-standing');
                 this.setOverlayClass('status-overlay not-standing');
                 this.setRingClass('status-ring not-standing');
-                this.body.className = 'not-standing';
+                this.updateBodyStatus('not-standing');
             }
             return;
         }
@@ -191,7 +202,7 @@ export class UIController {
             this.setCardClass('status-card standing');
             this.setOverlayClass('status-overlay standing');
             this.setRingClass('status-ring standing');
-            this.body.className = 'standing';
+            this.updateBodyStatus('standing');
 
             // Mark posture as 100% complete
             this.updatePostureBar(100);
@@ -304,7 +315,7 @@ export class UIController {
         this.setCardClass('status-card standing');
         this.setOverlayClass('status-overlay standing');
         this.setRingClass('status-ring standing');
-        this.body.className = 'standing';
+        this.updateBodyStatus('standing');
 
         // Update AR elements for completion
         this.updateTimer(0);
@@ -335,7 +346,7 @@ export class UIController {
         this.setCardClass('status-card standing');
         this.setOverlayClass('status-overlay standing');
         this.setRingClass('status-ring standing');
-        this.body.className = 'standing';
+        this.updateBodyStatus('standing');
     }
 
     /**
@@ -349,7 +360,7 @@ export class UIController {
         this.setCardClass('status-card not-standing');
         this.setOverlayClass('status-overlay not-standing');
         this.setRingClass('status-ring not-standing');
-        this.body.className = 'not-standing';
+        this.updateBodyStatus('not-standing');
     }
 
     /**
@@ -363,7 +374,7 @@ export class UIController {
         this.setCardClass('status-card');
         this.setOverlayClass('status-overlay standing');
         this.setRingClass('status-ring');
-        this.body.className = '';
+        this.updateBodyStatus(null);
         // Show overlay during initialization
         this.showOverlay();
     }
@@ -380,7 +391,7 @@ export class UIController {
         this.setCardClass('status-card not-standing');
         this.setOverlayClass('status-overlay standing');
         this.setRingClass('status-ring not-standing');
-        this.body.className = 'not-standing';
+        this.updateBodyStatus('not-standing');
         // Show overlay when there's an error
         this.showOverlay();
     }

@@ -78,6 +78,103 @@
                 linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
         }
+
+        /* Responsive Styles */
+
+        /* Mobile phones */
+        @media (max-width: 640px) {
+
+            /* Compact main layout */
+            [class*="flex"][class*="min-h-screen"] {
+                padding: 8px !important;
+                padding-top: 60px !important;
+            }
+
+            /* Smaller header */
+            header {
+                padding: 12px !important;
+            }
+
+            header h1 {
+                display: none !important;
+            }
+
+            header [class*="size-10"] {
+                width: 32px !important;
+                height: 32px !important;
+            }
+
+            /* Compact card */
+            .glass-card {
+                padding: 20px 16px !important;
+                margin: 0 4px;
+                max-width: 100% !important;
+                gap: 16px !important;
+            }
+
+            .glass-card h2,
+            .glass-card .text-3xl {
+                font-size: 1.25rem !important;
+            }
+
+            .glass-card p {
+                font-size: 0.75rem !important;
+            }
+
+            /* Compact form */
+            #registerForm {
+                gap: 12px !important;
+            }
+
+            .space-y-1\.5 {
+                gap: 4px !important;
+            }
+
+            /* Compact role selector */
+            [class*="bg-"][class*="/50"] {
+                padding: 4px !important;
+            }
+
+            [class*="bg-"][class*="/50"] label div {
+                padding: 8px !important;
+                font-size: 0.75rem !important;
+            }
+
+            input {
+                font-size: 16px !important;
+                padding: 12px 12px 12px 40px !important;
+            }
+
+            /* Compact button */
+            button[type="submit"] {
+                padding: 12px !important;
+                margin-top: 4px !important;
+            }
+
+            /* Smaller terms text */
+            form p {
+                font-size: 0.65rem !important;
+            }
+
+            [class*="blur-"] {
+                display: none !important;
+            }
+        }
+
+        /* Tablets */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .glass-card {
+                max-width: 420px !important;
+                padding: 32px !important;
+            }
+        }
+
+        /* Desktop */
+        @media (min-width: 1025px) {
+            .glass-card {
+                max-width: 480px !important;
+            }
+        }
     </style>
 </head>
 

@@ -112,6 +112,105 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #10b77f;
         }
+
+        /* Responsive Styles */
+
+        /* Mobile phones */
+        @media (max-width: 640px) {
+            nav .max-w-7xl {
+                padding: 12px 16px !important;
+            }
+
+            nav .hidden.md\\:flex {
+                display: none !important;
+            }
+
+            .hero-section {
+                padding-top: 100px !important;
+                padding-bottom: 60px !important;
+            }
+
+            .hero-section h1 {
+                font-size: 2rem !important;
+                line-height: 1.2 !important;
+            }
+
+            .hero-section p {
+                font-size: 1rem !important;
+            }
+
+            .hero-buttons {
+                flex-direction: column !important;
+                width: 100% !important;
+            }
+
+            .hero-buttons a,
+            .hero-buttons button {
+                width: 100% !important;
+            }
+
+            .phone-mockup {
+                display: none !important;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .bento-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .bento-grid>div {
+                grid-column: span 1 !important;
+                grid-row: span 1 !important;
+            }
+
+            section h2 {
+                font-size: 1.75rem !important;
+            }
+
+            footer .grid {
+                grid-template-columns: 1fr !important;
+                gap: 24px !important;
+            }
+        }
+
+        /* Tablets */
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .hero-section h1 {
+                font-size: 3rem !important;
+            }
+
+            .phone-mockup {
+                width: 280px !important;
+                height: 500px !important;
+            }
+
+            .feature-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            .bento-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            footer .grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+
+        /* Landscape mode adjustments */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .hero-section {
+                padding-top: 80px !important;
+                padding-bottom: 40px !important;
+            }
+
+            .phone-mockup {
+                height: 350px !important;
+            }
+        }
     </style>
 </head>
 
