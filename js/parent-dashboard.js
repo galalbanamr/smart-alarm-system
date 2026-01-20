@@ -283,6 +283,20 @@ function loadChildren() {
             const recentRecord = childRecords[0];
             const lastActivity = recentRecord ? getTimeAgo(new Date(recentRecord.timestamp)) : 'Never';
 
+            const formatCheckTime = (isoString) => {
+                if (!isoString) return '';
+                const date = new Date(isoString);
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            };
+
+            const standingTimeDisplay = checkStatus.standingComplete && checkStatus.standingTime
+                ? `<span class="check-time">${formatCheckTime(checkStatus.standingTime)}</span>`
+                : '';
+
+            const uniformTimeDisplay = checkStatus.clothingComplete && checkStatus.uniformTime
+                ? `<span class="check-time">${formatCheckTime(checkStatus.uniformTime)}</span>`
+                : '';
+
             return `
                 <div class="child-card">
                     <div class="child-card-header">
@@ -292,14 +306,20 @@ function loadChildren() {
                             <p>@${child.username} • ${translationManager.t('lastActivity')}: ${lastActivity}</p>
                         </div>
                     </div>
-                        <div class="child-checks">
+                    <div class="child-checks">
                         <div class="check-item ${checkStatus.standingComplete ? 'complete' : 'pending'}">
-                            <span class="check-icon">${checkStatus.standingComplete ? '✅' : '⏳'}</span>
-                            <span class="check-label">${translationManager.t('standingUp')}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="check-icon">${checkStatus.standingComplete ? '✅' : '⏳'}</span>
+                                <span class="check-label">${translationManager.t('standingUp')}</span>
+                            </div>
+                            ${standingTimeDisplay}
                         </div>
                         <div class="check-item ${checkStatus.clothingComplete ? 'complete' : 'pending'}">
-                            <span class="check-icon">${checkStatus.clothingComplete ? '✅' : '⏳'}</span>
-                            <span class="check-label">${translationManager.t('wearingUniform')}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="check-icon">${checkStatus.clothingComplete ? '✅' : '⏳'}</span>
+                                <span class="check-label">${translationManager.t('wearingUniform')}</span>
+                            </div>
+                            ${uniformTimeDisplay}
                         </div>
                     </div>
                     <div class="child-stats">

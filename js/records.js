@@ -82,8 +82,8 @@ export class RecordsManager {
             childId, // Changed from studentId
             recordId,
             type: isStanding ? 'standing' : 'not_standing',
-            message: isStanding 
-                ? 'Child stood up!' 
+            message: isStanding
+                ? 'Child stood up!'
                 : 'Child is not standing',
             timestamp: new Date().toISOString(),
             read: false
@@ -165,10 +165,10 @@ export class RecordsManager {
         localStorage.setItem(this.RECORDS_KEY, JSON.stringify(records));
 
         // Create notification for parent
-        const message = checkType === 'standing' 
+        const message = checkType === 'standing'
             ? 'Child has waked up! (Standing check complete)'
             : 'Child is wearing uniform! (Clothing check complete)';
-        
+
         this.createCheckNotification(parentId, childId, checkType, message, record.id);
 
         return record;
@@ -231,7 +231,7 @@ export class RecordsManager {
         const completeRecords = records
             .filter(r => r.childId === childId && r.type === 'complete')
             .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
+
         return completeRecords.length > 0 ? completeRecords[0] : null;
     }
 
@@ -244,14 +244,18 @@ export class RecordsManager {
             return {
                 standingComplete: false,
                 clothingComplete: false,
-                timestamp: null
+                timestamp: null,
+                standingTime: null,
+                uniformTime: null
             };
         }
-        
+
         return {
             standingComplete: latestRecord.standingComplete || false,
             clothingComplete: latestRecord.clothingComplete || false,
-            timestamp: latestRecord.timestamp
+            timestamp: latestRecord.timestamp,
+            standingTime: latestRecord.standingTime,
+            uniformTime: latestRecord.uniformTime
         };
     }
 
@@ -260,30 +264,30 @@ export class RecordsManager {
      */
     getRecordsByDate(parentId, allUsers = []) {
         const records = this.getParentRecords(parentId);
-        
+
         // Group records by date
         const recordsByDate = {};
-        
+
         records.forEach(record => {
             if (!record || !record.timestamp) return;
-            
+
             const date = new Date(record.timestamp);
             if (isNaN(date.getTime())) return; // Skip invalid dates
-            
+
             const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
-            
+
             if (!recordsByDate[dateKey]) {
                 recordsByDate[dateKey] = [];
             }
-            
+
             // Get child name
             const child = allUsers.find(u => u && u.id === record.childId);
             const childName = child ? child.name : 'Unknown';
-            
+
             // Extract times
             let standingTime = null;
             let uniformTime = null;
-            
+
             if (record.type === 'complete') {
                 // For complete records, use the stored times or fallback to timestamp
                 standingTime = record.standingTime || (record.standingComplete ? record.timestamp : null);
@@ -296,7 +300,7 @@ export class RecordsManager {
                     uniformTime = record.checkTime || record.timestamp;
                 }
             }
-            
+
             recordsByDate[dateKey].push({
                 childId: record.childId,
                 childName,
@@ -305,7 +309,7 @@ export class RecordsManager {
                 timestamp: record.timestamp
             });
         });
-        
+
         return recordsByDate;
     }
 
@@ -315,7 +319,7 @@ export class RecordsManager {
     getRecordsByChildAndDate(parentId, allUsers = []) {
         const recordsByDate = this.getRecordsByDate(parentId, allUsers);
         const result = {};
-        
+
         Object.keys(recordsByDate).forEach(date => {
             recordsByDate[date].forEach(record => {
                 if (!result[record.childId]) {
@@ -328,24 +332,24 @@ export class RecordsManager {
                         uniformTime: null
                     };
                 }
-                
+
                 // Use the earliest standing time and uniform time for each day
                 if (record.standingTime) {
-                    if (!result[record.childId][date].standingTime || 
+                    if (!result[record.childId][date].standingTime ||
                         new Date(record.standingTime) < new Date(result[record.childId][date].standingTime)) {
                         result[record.childId][date].standingTime = record.standingTime;
                     }
                 }
-                
+
                 if (record.uniformTime) {
-                    if (!result[record.childId][date].uniformTime || 
+                    if (!result[record.childId][date].uniformTime ||
                         new Date(record.uniformTime) < new Date(result[record.childId][date].uniformTime)) {
                         result[record.childId][date].uniformTime = record.uniformTime;
                     }
                 }
             });
         });
-        
+
         return result;
     }
 }

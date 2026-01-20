@@ -19,6 +19,46 @@
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
         rel="stylesheet" />
     <!-- Tailwind CSS -->
+    <style>
+        .child-checks {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .check-item.complete {
+            background: rgba(16, 183, 127, 0.1);
+            border-color: rgba(16, 183, 127, 0.3);
+        }
+
+        .check-time {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .check-item.complete .check-time {
+            color: #34d399;
+            background: rgba(16, 183, 127, 0.1);
+            border-color: rgba(16, 183, 127, 0.2);
+        }
+    </style>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <!-- Theme Configuration -->
     <script id="tailwind-config">
