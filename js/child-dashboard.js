@@ -101,6 +101,9 @@ async function initStandingDetection(session) {
     // Initialize app structure immediately so we can switch cameras if initialization fails
     app = { poseDetector, standingDetector, clothingDetector, uiController };
 
+    // Setup Color Detection Tuning Sliders
+    setupColorTuningSliders(clothingDetector);
+
     try {
         uiController.showInitializing();
         await poseDetector.initialize(initialSource);
@@ -110,6 +113,39 @@ async function initStandingDetection(session) {
             ? `Failed to connect to ESP32-CAM. Check IP address (${CONFIG.ESP32_CAM_IP}) and network connection.`
             : 'Failed to initialize camera. Please check permissions.';
         uiController.showError(errorMessage);
+    }
+}
+
+function setupColorTuningSliders(clothingDetector) {
+    const brightnessSlider = document.getElementById('brightnessSlider');
+    const saturationSlider = document.getElementById('saturationSlider');
+    const brightnessValue = document.getElementById('brightnessValue');
+    const saturationValue = document.getElementById('saturationValue');
+
+    if (brightnessSlider && clothingDetector) {
+        // Set initial value from detector
+        brightnessSlider.value = clothingDetector.MAX_BLACK_VALUE;
+        if (brightnessValue) brightnessValue.textContent = clothingDetector.MAX_BLACK_VALUE;
+
+        brightnessSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value, 10);
+            clothingDetector.MAX_BLACK_VALUE = value;
+            if (brightnessValue) brightnessValue.textContent = value;
+            console.log(`🎨 Max Brightness set to: ${value}`);
+        });
+    }
+
+    if (saturationSlider && clothingDetector) {
+        // Set initial value from detector
+        saturationSlider.value = clothingDetector.MAX_SATURATION;
+        if (saturationValue) saturationValue.textContent = clothingDetector.MAX_SATURATION;
+
+        saturationSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value, 10);
+            clothingDetector.MAX_SATURATION = value;
+            if (saturationValue) saturationValue.textContent = value;
+            console.log(`🎨 Max Saturation set to: ${value}`);
+        });
     }
 }
 
