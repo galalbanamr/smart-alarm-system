@@ -239,23 +239,45 @@ export class RecordsManager {
      * Get check status for a child (latest complete record)
      */
     getChildCheckStatus(childId) {
-        const latestRecord = this.getLatestCompleteRecord(childId);
-        if (!latestRecord) {
+        // Get all records for this child
+        const records = this.getChildRecords(childId);
+
+        // Filter for today's records
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const todaysRecords = records.filter(r => {
+            const recordDate = new Date(r.timestamp);
+            recordDate.setHours(0, 0, 0, 0);
+            return recordDate.getTime() === today.getTime();
+        });
+
+        // 1. Check for a complete record first (highest priority)
+        const completeRecord = todaysRecords.find(r => r.type === 'complete');
+
+        if (completeRecord) {
             return {
-                standingComplete: false,
-                clothingComplete: false,
-                timestamp: null,
-                standingTime: null,
-                uniformTime: null
+                standingComplete: completeRecord.standingComplete || false,
+                clothingComplete: completeRecord.clothingComplete || false,
+                timestamp: completeRecord.timestamp,
+                standingTime: completeRecord.standingTime,
+                uniformTime: completeRecord.uniformTime
             };
         }
 
+        // 2. If no complete record, aggregate individual checks
+        const standingCheck = todaysRecords.find(r => r.type === 'check' && r.checkType === 'standing' && r.passed);
+        const clothingCheck = todaysRecords.find(r => r.type === 'check' && r.checkType === 'clothing' && r.passed);
+
         return {
-            standingComplete: latestRecord.standingComplete || false,
-            clothingComplete: latestRecord.clothingComplete || false,
-            timestamp: latestRecord.timestamp,
-            standingTime: latestRecord.standingTime,
-            uniformTime: latestRecord.uniformTime
+            standingComplete: !!standingCheck,
+            clothingComplete: !!clothingCheck,
+            // Use the latest timestamp
+            timestamp: standingCheck
+                ? (clothingCheck && new Date(clothingCheck.timestamp) > new Date(standingCheck.timestamp) ? clothingCheck.timestamp : standingCheck.timestamp)
+                : (clothingCheck ? clothingCheck.timestamp : null),
+            standingTime: standingCheck ? (standingCheck.checkTime || standingCheck.timestamp) : null,
+            uniformTime: clothingCheck ? (clothingCheck.checkTime || clothingCheck.timestamp) : null
         };
     }
 
