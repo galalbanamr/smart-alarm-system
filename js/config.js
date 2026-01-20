@@ -47,10 +47,15 @@ export const CONFIG = {
         // Target color to detect (RGB values 0-255)
         // Default: black (0, 0, 0)
         targetColor: { r: 0, g: 0, b: 0 },
-        // Maximum RGB value for black detection (all channels must be below this)
-        maxBlackValue: 100, // Increased to 100 to detect darker shades of black/gray
-        // Color tolerance for distance-based matching (0.0 to 1.0)
-        colorTolerance: 0.25, // 25% tolerance - more lenient for black detection
+        // Maximum Brightness (max RGB channel) to consider "black"
+        // Increased to 120 to allow for "gray" which is black under bright light
+        maxBlackValue: 120,
+        // Maximum Saturation (difference between max and min channel)
+        // Black/Gray has very low saturation. Colors have high saturation.
+        // Threshold of 30 prevents dark red/blue from being detected as black
+        maxSaturation: 30,
+        // Color tolerance for distance-based matching (optional fallback)
+        colorTolerance: 0.3,
         // Required continuous duration in seconds
         requiredDuration: 5,
         // Enable debug logging (set to true to see color values in console)
