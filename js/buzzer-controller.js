@@ -74,18 +74,36 @@ export class BuzzerController {
         try {
             const url = MDNSResolver.getUrl(this.buzzerIP, '/buzzer/off');
             console.log(`📡 Sending buzzer OFF request to: ${url}`);
-            
+
             // Add timeout to prevent hanging
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-            
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                signal: controller.signal
-            });
+
+            // First try with standard fetch
+            let response;
+            try {
+                response = await fetch(url, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+            } catch (corsError) {
+                // If CORS fails, try no-cors mode (request still sent, can't read response)
+                console.log('ℹ️ CORS request failed, trying no-cors mode...');
+                response = await fetch(url, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    signal: controller.signal
+                });
+                // With no-cors, response is opaque but request was sent
+                clearTimeout(timeoutId);
+                console.log('✅ Buzzer OFF request sent (no-cors mode - assuming success)');
+                this.buzzerOffSent = true;
+                return true;
+            }
 
             clearTimeout(timeoutId);
 
@@ -108,6 +126,7 @@ export class BuzzerController {
                 console.error('❌ Error turning buzzer OFF:', error);
                 console.error('   ESP32 IP:', this.buzzerIP);
                 console.error('   Make sure ESP32 is connected to the same network');
+                console.error('   If on HTTPS (GitHub Pages), Mixed Content may be blocking the request');
             }
             return false;
         }
@@ -126,7 +145,7 @@ export class BuzzerController {
         try {
             const url = MDNSResolver.getUrl(this.buzzerIP, '/status');
             const response = await fetch(url);
-            
+
             if (response.ok) {
                 const data = await response.json();
                 return data;
