@@ -19,7 +19,7 @@ export class StandingDetector {
             RIGHT_ANKLE: 28,
             NOSE: 0
         };
-        
+
         // Thresholds for standing detection (from config)
         this.STANDING_THRESHOLDS = CONFIG.STANDING_THRESHOLDS;
     }
@@ -31,6 +31,7 @@ export class StandingDetector {
      */
     isStanding(landmarks) {
         if (!landmarks || landmarks.length < 29) {
+            console.log('🚶 Standing Check: No landmarks or insufficient landmarks');
             return false;
         }
 
@@ -99,7 +100,7 @@ export class StandingDetector {
         const bodyHeight = this.distance(midShoulder, midAnkle);
         const torsoHeight = this.distance(midShoulder, midHip);
         const legHeight = this.distance(midHip, midAnkle);
-        
+
         // Standing person: legs should be longer than torso (very lenient - 60% instead of 80%)
         const legsLongerThanTorso = legHeight > torsoHeight * 0.6;
 
@@ -107,16 +108,41 @@ export class StandingDetector {
         // If knees are below hips (not sitting) and ankles are below knees, you're standing!
         // This is the most basic and reliable check
         const bodyPartsInOrder = kneesBelowHips && anklesBelowKnees;
-        
+
+        // Debug logging - every 60 frames (1 second at 60fps)
+        if (!this._frameCount) this._frameCount = 0;
+        this._frameCount++;
+
+        if (this._frameCount % 60 === 0) {
+            console.log(`🚶 Standing Detection Debug:`, {
+                visibleLandmarks,
+                kneesBelowHips,
+                anklesBelowKnees,
+                bodyPartsInOrder,
+                legHeight: legHeight.toFixed(3),
+                bodyHeight: bodyHeight.toFixed(3),
+                torsoHeight: torsoHeight.toFixed(3),
+                legsLongerThanTorso
+            });
+        }
+
         if (bodyPartsInOrder) {
             // Additional simple check: make sure legs exist (leg height > 0.1 of body height)
             // This prevents false positives when landmarks are misaligned
             const hasReasonableLegs = legHeight > bodyHeight * 0.1;
-            
+
+            if (this._frameCount % 60 === 0) {
+                console.log(`🚶 Standing Result: ${hasReasonableLegs ? 'STANDING ✅' : 'NOT STANDING (no reasonable legs)'}`);
+            }
+
             // Standing if body parts in order AND has reasonable leg detection
             return hasReasonableLegs;
         }
-        
+
+        if (this._frameCount % 60 === 0) {
+            console.log(`🚶 Standing Result: NOT STANDING (body parts not in order)`);
+        }
+
         return false;
     }
 
@@ -150,9 +176,9 @@ export class StandingDetector {
 
         // Check if y-coordinates are in descending order (top to bottom)
         // Allow some flexibility - just check that they're generally in order
-        const yOrdered = shoulder.y < hip.y && 
-                         hip.y < knee.y && 
-                         knee.y < ankle.y;
+        const yOrdered = shoulder.y < hip.y &&
+            hip.y < knee.y &&
+            knee.y < ankle.y;
 
         // More lenient: just check that x-spread is reasonable and y is ordered
         return xSpread < this.STANDING_THRESHOLDS.VERTICAL_TOLERANCE && yOrdered;
@@ -165,9 +191,9 @@ export class StandingDetector {
     calculateHeightRatio(shoulder, hip, knee, ankle) {
         const shoulderToAnkle = this.distance(shoulder, ankle);
         const hipToAnkle = this.distance(hip, ankle);
-        
+
         if (hipToAnkle === 0) return 0;
-        
+
         return shoulderToAnkle / hipToAnkle;
     }
 

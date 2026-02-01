@@ -79,6 +79,7 @@ let lastClothingState = false;
 let standingCheckComplete = false;
 let clothingCheckComplete = false;
 let detectionStopped = false;
+let lastLoggedDuration = -1; // For debug logging
 
 async function initStandingDetection(session) {
     const video = document.getElementById('video');
@@ -205,6 +206,10 @@ function onPoseResults(results, session, standingDetector, clothingDetector, uiC
     // Always check standing first
     try {
         isStanding = standingDetector.isStanding(results.poseLandmarks);
+        // Debug: log standing state changes
+        if (isStanding !== lastStandingState) {
+            console.log(`🎯 Standing state changed: ${lastStandingState} → ${isStanding}`);
+        }
     } catch (error) {
         console.warn('Error in standing detection:', error);
         isStanding = false;
@@ -267,6 +272,12 @@ function onPoseResults(results, session, standingDetector, clothingDetector, uiC
         if (standingStartTime) {
             // Calculate how long the person has been continuously standing
             standingDuration = Math.floor((now - standingStartTime) / 1000);
+
+            // Log duration progress every second
+            if (standingDuration > 0 && standingDuration !== lastLoggedDuration) {
+                console.log(`⏱️ Standing duration: ${standingDuration}/${CONFIG.CHECKS.standingDuration}s`);
+                lastLoggedDuration = standingDuration;
+            }
 
             // Only mark as complete after 5 seconds of continuous standing
             // The timer resets automatically if person stops standing (handled above)
