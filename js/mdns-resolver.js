@@ -20,7 +20,7 @@ export class MDNSResolver {
         return new Promise((resolve) => {
             const img = new Image();
             const testUrl = `http://${hostname}/favicon.ico?t=${Date.now()}`;
-            
+
             // Set a timeout
             const timeout = setTimeout(() => {
                 console.warn(`mDNS resolution timeout for ${hostname}, using hostname directly`);
@@ -50,6 +50,7 @@ export class MDNSResolver {
      * Get the actual URL to use for fetch requests
      * For .local domains, tries to use hostname directly (some browsers support it)
      * Falls back to trying IP if available
+     * Uses HTTPS when page is loaded over HTTPS (required for GitHub Pages → ESP32)
      * @param {string} hostname - The hostname or IP
      * @param {string} path - The path to append
      * @returns {string} - The full URL
@@ -59,10 +60,12 @@ export class MDNSResolver {
         if (path.startsWith('/')) {
             path = path.substring(1);
         }
-        
-        // For .local domains, try using hostname directly
-        // Modern browsers (Chrome/Edge) support .local in fetch
-        return `http://${hostname}${path ? '/' + path : ''}`;
+
+        // Use HTTPS if the current page is HTTPS (required to avoid Mixed Content blocking)
+        // ESP32 must have HTTPS enabled for this to work
+        const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
+
+        return `${protocol}://${hostname}${path ? '/' + path : ''}`;
     }
 }
 
