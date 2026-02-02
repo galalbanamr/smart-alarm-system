@@ -67,6 +67,11 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Initialize buzzer controller (discovers ESP32 IP)
+    buzzerController.init().then(() => {
+        console.log('Buzzer controller initialized');
+    });
+
     // Initialize standing detection (after setting up selector)
     initStandingDetection(session);
 });

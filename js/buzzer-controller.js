@@ -9,7 +9,30 @@ import { MDNSResolver } from './mdns-resolver.js';
 export class BuzzerController {
     constructor() {
         this.buzzerIP = CONFIG.ESP32_BUZZER_IP;
+        this.resolvedIP = null; // Discovered IP address
         this.buzzerOffSent = false; // Track if we've already sent the off command
+        this.initialized = false;
+    }
+
+    /**
+     * Initialize the buzzer controller - discover ESP32 IP
+     * Call this at app startup
+     */
+    async init() {
+        if (this.initialized) return;
+
+        console.log('🔌 Initializing buzzer controller...');
+
+        // Try to discover ESP32 IP
+        this.resolvedIP = await MDNSResolver.ensureConnection(this.buzzerIP);
+
+        if (this.resolvedIP) {
+            console.log(`✅ Buzzer controller ready - ESP32 at ${this.resolvedIP}`);
+            this.initialized = true;
+        } else {
+            console.warn('⚠️ Could not connect to ESP32 buzzer');
+            console.warn('   Make sure ESP32 is powered on and connected to the same network');
+        }
     }
 
     /**
@@ -74,11 +97,11 @@ export class BuzzerController {
         try {
             const url = MDNSResolver.getUrl(this.buzzerIP, '/buzzer/off');
             console.log(`📡 Sending buzzer OFF request to: ${url}`);
-            
+
             // Add timeout to prevent hanging
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-            
+
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
@@ -126,7 +149,7 @@ export class BuzzerController {
         try {
             const url = MDNSResolver.getUrl(this.buzzerIP, '/status');
             const response = await fetch(url);
-            
+
             if (response.ok) {
                 const data = await response.json();
                 return data;
