@@ -61,7 +61,7 @@ export class PoseDetector {
         return new Promise((resolve, reject) => {
             console.log('Starting Laptop Camera initialization...');
             this.currentSource = 'laptop';
-            
+
             // Stop any existing detection loop
             if (this.detectionLoopId) {
                 cancelAnimationFrame(this.detectionLoopId);
@@ -72,7 +72,7 @@ export class PoseDetector {
             this.video.pause();
             this.video.src = '';
             this.video.srcObject = null;
-            
+
             // Remove all event listeners
             this.video.onloadeddata = null;
             this.video.oncanplay = null;
@@ -111,7 +111,7 @@ export class PoseDetector {
         return new Promise((resolve, reject) => {
             console.log('Starting ESP32-CAM initialization...');
             this.currentSource = 'esp32';
-            
+
             // Ensure laptop camera is stopped
             if (this.camera) {
                 try {
@@ -128,22 +128,23 @@ export class PoseDetector {
                 cancelAnimationFrame(this.detectionLoopId);
                 this.detectionLoopId = null;
             }
-            
+
             // Clean up any existing ESP32 stream
             if (this.esp32AbortController) {
                 this.esp32AbortController.abort();
                 this.esp32AbortController = null;
             }
 
-            // Build ESP32-CAM stream URL (handles mDNS hostnames)
-            const streamUrl = MDNSResolver.getUrl(CONFIG.ESP32_CAM_IP, '/stream');
+            // Build ESP32-CAM stream URL
+            // Prefer CONFIG.ESP32_CAM_STREAM_URL if set, otherwise build from hostname
+            const streamUrl = CONFIG.ESP32_CAM_STREAM_URL || MDNSResolver.getUrl(CONFIG.ESP32_CAM_IP, '/stream');
             console.log('Connecting to ESP32-CAM:', streamUrl);
 
             // Clear any existing video source completely
             this.video.pause();
             this.video.src = '';
             this.video.srcObject = null;
-            
+
             // Create image element for latest frame
             if (!this.esp32StreamImg) {
                 this.esp32StreamImg = document.createElement('img');
@@ -151,7 +152,7 @@ export class PoseDetector {
                 this.esp32StreamImg.style.display = 'none';
                 document.body.appendChild(this.esp32StreamImg);
             }
-            
+
             let resolved = false;
             let frameCount = 0;
             let reader = null;
@@ -159,7 +160,7 @@ export class PoseDetector {
             let frameCheckInterval = null;
             this.esp32AbortController = new AbortController();
             this.esp32LastFrameTime = lastFrameTime; // Store in instance for access
-            
+
             const timeout = setTimeout(() => {
                 if (!resolved) {
                     resolved = true;
@@ -176,7 +177,7 @@ export class PoseDetector {
                     resolved = true;
                     clearTimeout(timeout);
                     console.log('ESP32-CAM stream loaded successfully');
-                    
+
                     // Monitor frame updates - if no frames for 5 seconds, restart
                     frameCheckInterval = setInterval(() => {
                         if (this.currentSource !== 'esp32') {
@@ -198,10 +199,10 @@ export class PoseDetector {
                             }, 500);
                         }
                     }, 2000);
-                    
+
                     // Store interval reference for cleanup
                     this.esp32FrameCheckInterval = frameCheckInterval;
-                    
+
                     setTimeout(() => {
                         this.startDetectionLoop();
                         resolve();
@@ -211,7 +212,7 @@ export class PoseDetector {
 
             // Fetch and parse MJPEG stream properly
             console.log('Attempting to fetch ESP32-CAM stream from:', streamUrl);
-            fetch(streamUrl, { 
+            fetch(streamUrl, {
                 signal: this.esp32AbortController.signal,
                 cache: 'no-cache',
                 mode: 'cors' // Explicitly allow CORS
@@ -222,49 +223,49 @@ export class PoseDetector {
                         throw new Error(`HTTP error! status: ${response.status} ${response.statusText}`);
                     }
                     console.log('ESP32-CAM stream fetch started successfully');
-                    
+
                     reader = response.body.getReader();
                     const decoder = new TextDecoder();
                     let buffer = new Uint8Array(0);
                     const boundary = '--frame'; // From ESP32 firmware: boundary=frame
                     let frameStart = -1;
-                    
+
                     const processChunk = () => {
                         reader.read().then(({ done, value }) => {
                             if (done || this.currentSource !== 'esp32') {
                                 console.log('ESP32-CAM stream ended');
                                 return;
                             }
-                            
+
                             if (value) {
                                 // Append new data
                                 const newBuffer = new Uint8Array(buffer.length + value.length);
                                 newBuffer.set(buffer);
                                 newBuffer.set(value, buffer.length);
                                 buffer = newBuffer;
-                                
+
                                 // Process frames continuously
                                 while (buffer.length > 100) { // Need enough data
                                     if (frameStart === -1) {
                                         // Look for boundary marker
                                         const boundaryBytes = new TextEncoder().encode(boundary);
                                         const boundaryIndex = this.findInBuffer(buffer, boundary);
-                                        
+
                                         if (boundaryIndex >= 0) {
                                             // Found boundary, now look for JPEG start (0xFF 0xD8)
                                             // Skip past boundary, headers, and newlines
                                             let searchStart = boundaryIndex + boundaryBytes.length;
-                                            
+
                                             // Skip headers (look for double CRLF which ends headers)
                                             for (let i = searchStart; i < buffer.length - 3; i++) {
-                                                if (buffer[i] === 0x0D && buffer[i+1] === 0x0A && 
-                                                    buffer[i+2] === 0x0D && buffer[i+3] === 0x0A) {
+                                                if (buffer[i] === 0x0D && buffer[i + 1] === 0x0A &&
+                                                    buffer[i + 2] === 0x0D && buffer[i + 3] === 0x0A) {
                                                     // Found end of headers, JPEG should start after this
                                                     searchStart = i + 4;
                                                     break;
                                                 }
                                             }
-                                            
+
                                             // Look for JPEG start marker
                                             for (let i = searchStart; i < buffer.length - 1; i++) {
                                                 if (buffer[i] === 0xFF && buffer[i + 1] === 0xD8) {
@@ -273,7 +274,7 @@ export class PoseDetector {
                                                 }
                                             }
                                         }
-                                        
+
                                         if (frameStart === -1) {
                                             // No frame found yet, keep some buffer and wait
                                             if (buffer.length > 50000) {
@@ -283,37 +284,37 @@ export class PoseDetector {
                                             break;
                                         }
                                     }
-                                    
+
                                     // Look for JPEG end marker (0xFF 0xD9)
                                     if (frameStart >= 0) {
                                         for (let i = frameStart + 2; i < buffer.length - 1; i++) {
                                             if (buffer[i] === 0xFF && buffer[i + 1] === 0xD9) {
                                                 // Found complete JPEG frame
                                                 const frameData = buffer.slice(frameStart, i + 2);
-                                                
+
                                                 // Create blob URL and load image
                                                 const blob = new Blob([frameData], { type: 'image/jpeg' });
                                                 const url = URL.createObjectURL(blob);
-                                                
+
                                                 // Clean up old URL
                                                 if (this.esp32StreamImg.src && this.esp32StreamImg.src.startsWith('blob:')) {
                                                     URL.revokeObjectURL(this.esp32StreamImg.src);
                                                 }
-                                                
+
                                                 this.esp32StreamImg.onload = () => {
                                                     frameCount++;
                                                     this.esp32LastFrameTime = Date.now(); // Update last frame time
-                                                    
+
                                                     // Update canvas size
-                                                    if (this.canvas.width !== this.esp32StreamImg.naturalWidth || 
+                                                    if (this.canvas.width !== this.esp32StreamImg.naturalWidth ||
                                                         this.canvas.height !== this.esp32StreamImg.naturalHeight) {
                                                         this.canvas.width = this.esp32StreamImg.naturalWidth;
                                                         this.canvas.height = this.esp32StreamImg.naturalHeight;
                                                     }
-                                                    
+
                                                     // Draw to canvas
                                                     this.ctx.drawImage(this.esp32StreamImg, 0, 0);
-                                                    
+
                                                     if (frameCount === 1) {
                                                         console.log('ESP32-CAM first frame loaded');
                                                         onSuccess();
@@ -322,20 +323,20 @@ export class PoseDetector {
                                                         console.log(`ESP32-CAM: ${frameCount} frames received`);
                                                     }
                                                 };
-                                                
+
                                                 this.esp32StreamImg.onerror = () => {
                                                     console.warn('Failed to load JPEG frame');
                                                 };
-                                                
+
                                                 this.esp32StreamImg.src = url;
-                                                
+
                                                 // Remove processed frame from buffer
                                                 buffer = buffer.slice(i + 2);
                                                 frameStart = -1;
                                                 break;
                                             }
                                         }
-                                        
+
                                         // If frame not complete, wait for more data
                                         if (frameStart >= 0) {
                                             if (buffer.length > 500000) {
@@ -348,7 +349,7 @@ export class PoseDetector {
                                     }
                                 }
                             }
-                            
+
                             // Continue reading
                             if (this.currentSource === 'esp32') {
                                 processChunk();
@@ -357,13 +358,13 @@ export class PoseDetector {
                             if (this.currentSource !== 'esp32') {
                                 return; // Switched cameras, ignore error
                             }
-                            
+
                             if (error.name === 'AbortError') {
                                 return; // Expected when stopping
                             }
-                            
+
                             console.error('ESP32-CAM stream read error:', error);
-                            
+
                             // If we've received frames before, try to restart
                             if (frameCount > 0) {
                                 console.log('ESP32-CAM stream interrupted, attempting to reconnect...');
@@ -377,7 +378,7 @@ export class PoseDetector {
                                 }, 2000);
                                 return;
                             }
-                            
+
                             // If no frames received yet, reject
                             if (!resolved && frameCount === 0) {
                                 resolved = true;
@@ -387,7 +388,7 @@ export class PoseDetector {
                             }
                         });
                     };
-                    
+
                     processChunk();
                 })
                 .catch(error => {
@@ -400,7 +401,7 @@ export class PoseDetector {
                             stack: error.stack,
                             url: streamUrl
                         });
-                        
+
                         // Provide helpful error message
                         let errorMsg = `Failed to connect to ESP32-CAM: ${error.message}`;
                         if (CONFIG.ESP32_CAM_IP.endsWith('.local')) {
@@ -411,7 +412,7 @@ export class PoseDetector {
                 });
         });
     }
-    
+
     findInBuffer(buffer, searchString) {
         const searchBytes = new TextEncoder().encode(searchString);
         for (let i = 0; i <= buffer.length - searchBytes.length; i++) {
@@ -431,7 +432,7 @@ export class PoseDetector {
         try {
             let sourceWidth, sourceHeight;
             let sourceElement = null;
-            
+
             // Get source element and dimensions
             if (this.currentSource === 'esp32') {
                 // For ESP32, use the stream image
@@ -454,15 +455,15 @@ export class PoseDetector {
 
             // Clear canvas
             this.ctx.save();
-            
+
             // Set canvas size to match source (only if dimensions changed)
             if (this.canvas.width !== sourceWidth || this.canvas.height !== sourceHeight) {
                 this.canvas.width = sourceWidth;
                 this.canvas.height = sourceHeight;
             }
-            
+
             this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            
+
             // Draw the source element to canvas
             if (sourceElement) {
                 this.ctx.drawImage(sourceElement, 0, 0, sourceWidth, sourceHeight);
@@ -523,7 +524,7 @@ export class PoseDetector {
 
     async switchCameraSource(source) {
         console.log(`Switching camera from ${this.currentSource} to ${source}`);
-        
+
         if (source === this.currentSource) {
             console.log('Already using this source, skipping switch');
             return; // Already using this source
@@ -575,7 +576,7 @@ export class PoseDetector {
     stop() {
         console.log('Stopping camera and cleaning up...');
         console.log('Current source before stop:', this.currentSource);
-        
+
         // Stop laptop camera (MediaPipe Camera) FIRST and aggressively
         if (this.camera) {
             try {
@@ -602,7 +603,7 @@ export class PoseDetector {
             try {
                 console.log('Clearing video element...');
                 this.video.pause();
-                
+
                 // Clear srcObject first (MediaPipe uses this)
                 if (this.video.srcObject) {
                     const stream = this.video.srcObject;
@@ -614,17 +615,17 @@ export class PoseDetector {
                     }
                     this.video.srcObject = null;
                 }
-                
+
                 // Then clear src
                 this.video.src = '';
-                
+
                 // Remove all event listeners
                 this.video.onloadeddata = null;
                 this.video.oncanplay = null;
                 this.video.oncanplaythrough = null;
                 this.video.onerror = null;
                 this.video.onloadedmetadata = null;
-                
+
                 console.log('Video element cleared completely');
                 console.log('Video src after clear:', this.video.src);
                 console.log('Video srcObject after clear:', this.video.srcObject);
@@ -636,19 +637,19 @@ export class PoseDetector {
                 this.video.srcObject = null;
             }
         }
-        
+
         // Clear ESP32 resources
         if (this.esp32AbortController) {
             this.esp32AbortController.abort();
             this.esp32AbortController = null;
         }
-        
+
         // Clear frame check interval if it exists
         if (this.esp32FrameCheckInterval) {
             clearInterval(this.esp32FrameCheckInterval);
             this.esp32FrameCheckInterval = null;
         }
-        
+
         if (this.esp32StreamImg) {
             if (this.esp32StreamImg.src && this.esp32StreamImg.src.startsWith('blob:')) {
                 URL.revokeObjectURL(this.esp32StreamImg.src);

@@ -9,12 +9,11 @@ export const CONFIG = {
     CAMERA_SOURCE: 'laptop',
 
     // ESP32-CAM hostname/IP - Uses mDNS hostname for automatic IP discovery
-    // If mDNS doesn't work, you can use the IP address directly
-    ESP32_CAM_IP: 'esp32-cam.local', // mDNS hostname (automatic IP discovery)
-    // ESP32_CAM_IP: '192.168.137.141', // Fallback: Use IP if mDNS doesn't work
+    // mDNS works for img src attributes in most browsers
+    ESP32_CAM_IP: 'esp32-cam.local', // mDNS hostname
 
-    // ESP32-CAM stream endpoint
-    ESP32_CAM_STREAM_URL: null, // Will be constructed from ESP32_CAM_IP
+    // ESP32-CAM stream endpoint - set directly to the working URL
+    ESP32_CAM_STREAM_URL: 'http://esp32-cam.local/stream',
 
     // ESP32 Buzzer IP Address
     // IMPORTANT: JavaScript fetch() cannot resolve .local hostnames!
