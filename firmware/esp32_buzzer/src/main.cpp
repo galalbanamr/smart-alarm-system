@@ -1,24 +1,37 @@
 /*
- * Smart Alarm System - ESP32 Buzzer Controller Firmware
+ * Smart Alarm System - ESP32 Buzzer Controller Firmware (HTTPS Version)
  * 
  * This firmware controls a passive buzzer connected to an ESP32.
- * The buzzer starts ON by default and can be controlled via HTTP REST API.
+ * The buzzer starts ON by default and can be controlled via HTTPS REST API.
+ * 
+ * HTTPS is required for communication from GitHub Pages (HTTPS) to ESP32.
+ * Uses a self-signed certificate - you may need to accept it in your browser first.
  * 
  * Hardware: ESP32 Dev Board + Passive Buzzer
  * 
  * Usage:
  * 1. Configure WIFI_SSID, WIFI_PASSWORD, and BUZZER_PIN below
  * 2. Upload to ESP32
- * 3. Control buzzer via HTTP endpoints:
+ * 3. IMPORTANT: First visit https://<ESP32-IP>/ in your browser and accept the certificate
+ * 4. Control buzzer via HTTPS endpoints:
  *    - POST /buzzer/on  → Turn buzzer ON
  *    - POST /buzzer/off → Turn buzzer OFF
  *    - GET /status      → Get current status
  */
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <WebServer.h>
 #include <ArduinoJson.h>
 #include <ESPmDNS.h>
+
+// For HTTPS support
+#include <HTTPSServer.hpp>
+#include <SSLCert.hpp>
+#include <HTTPRequest.hpp>
+#include <HTTPResponse.hpp>
+
+using namespace httpsserver;
 
 // ============================================================================
 // CONFIGURATION - TODO: Change these values for your setup
@@ -27,39 +40,52 @@ const char* WIFI_SSID = "GALAL";
 const char* WIFI_PASSWORD = "123456789";
 
 // Buzzer pin - GPIO 2 (D2) - Has built-in LED on most ESP32 dev boards
-// The LED will turn ON when buzzer is ON, providing visual feedback
-// Note: For passive buzzers, you typically need a PWM pin
-// GPIO 2 is a PWM-capable pin and has an LED for visual indication
 #define BUZZER_PIN 2  // GPIO 2 (D2) - LED pin on most ESP32 boards
 
 // Buzzer frequency for passive buzzer (in Hz)
-// TODO: Adjust based on your buzzer specifications
 #define BUZZER_FREQUENCY 2000  // 2kHz is a common frequency
 
 // ============================================================================
 // GLOBAL VARIABLES
 // ============================================================================
-WebServer server(80);
+SSLCert * cert;
+HTTPSServer * secureServer;
+WebServer httpServer(80);  // Also keep HTTP server for local access
 bool buzzerState = true;  // Start with buzzer ON (default behavior)
 
 // ============================================================================
 // FUNCTION DECLARATIONS
 // ============================================================================
 void initWiFi();
-void handleRoot();
-void handleBuzzerOn();
-void handleBuzzerOff();
-void handleStatus();
-void handleNotFound();
-void handleOptions();
 void setBuzzer(bool state);
+void handleRoot(HTTPRequest * req, HTTPResponse * res);
+void handleBuzzerOn(HTTPRequest * req, HTTPResponse * res);
+void handleBuzzerOff(HTTPRequest * req, HTTPResponse * res);
+void handleStatus(HTTPRequest * req, HTTPResponse * res);
+void handleOptions(HTTPRequest * req, HTTPResponse * res);
+void handleNotFound(HTTPRequest * req, HTTPResponse * res);
+// HTTP handlers (for local access)
+void handleHttpRoot();
+void handleHttpBuzzerOn();
+void handleHttpBuzzerOff();
+void handleHttpStatus();
+void handleHttpOptions();
+
+// ============================================================================
+// CORS Headers Helper
+// ============================================================================
+void addCorsHeaders(HTTPResponse * res) {
+  res->setHeader("Access-Control-Allow-Origin", "*");
+  res->setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res->setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
 
 // ============================================================================
 // SETUP
 // ============================================================================
 void setup() {
   Serial.begin(115200);
-  Serial.println("\n\n=== Smart Alarm System - ESP32 Buzzer Controller ===");
+  Serial.println("\n\n=== Smart Alarm System - ESP32 Buzzer Controller (HTTPS) ===");
   
   // Configure buzzer pin
   pinMode(BUZZER_PIN, OUTPUT);
@@ -71,34 +97,90 @@ void setup() {
   // Connect to Wi-Fi
   initWiFi();
   
-  // Setup HTTP server routes
-  server.on("/", handleRoot);
-  server.on("/buzzer/on", HTTP_POST, handleBuzzerOn);
-  server.on("/buzzer/off", HTTP_POST, handleBuzzerOff);
-  server.on("/status", HTTP_GET, handleStatus);
-  // Handle CORS preflight requests
-  server.on("/buzzer/on", HTTP_OPTIONS, handleOptions);
-  server.on("/buzzer/off", HTTP_OPTIONS, handleOptions);
-  server.onNotFound(handleNotFound);
+  // Generate self-signed certificate
+  Serial.println("Generating self-signed certificate...");
+  cert = new SSLCert();
+  int createCertResult = createSelfSignedCert(
+    *cert,
+    KEYSIZE_2048,
+    "CN=esp32-buzzer.local,O=SmartAlarm,C=US",
+    "20250101000000",
+    "20350101000000"
+  );
   
-  // Start server
-  server.begin();
-  Serial.println("HTTP server started");
-  Serial.println("API endpoints:");
+  if (createCertResult != 0) {
+    Serial.println("ERROR: Certificate generation failed!");
+    Serial.println("Falling back to HTTP only...");
+  } else {
+    Serial.println("Certificate generated successfully!");
+    
+    // Create HTTPS server on port 443
+    secureServer = new HTTPSServer(cert, 443, 5);
+    
+    // Register HTTPS routes
+    ResourceNode * nodeRoot = new ResourceNode("/", "GET", &handleRoot);
+    ResourceNode * nodeBuzzerOnPost = new ResourceNode("/buzzer/on", "POST", &handleBuzzerOn);
+    ResourceNode * nodeBuzzerOnGet = new ResourceNode("/buzzer/on", "GET", &handleBuzzerOn);  // Also support GET
+    ResourceNode * nodeBuzzerOnOptions = new ResourceNode("/buzzer/on", "OPTIONS", &handleOptions);
+    ResourceNode * nodeBuzzerOffPost = new ResourceNode("/buzzer/off", "POST", &handleBuzzerOff);
+    ResourceNode * nodeBuzzerOffGet = new ResourceNode("/buzzer/off", "GET", &handleBuzzerOff);  // Also support GET
+    ResourceNode * nodeBuzzerOffOptions = new ResourceNode("/buzzer/off", "OPTIONS", &handleOptions);
+    ResourceNode * nodeStatus = new ResourceNode("/status", "GET", &handleStatus);
+    ResourceNode * nodeNotFound = new ResourceNode("", "GET", &handleNotFound);
+    
+    secureServer->registerNode(nodeRoot);
+    secureServer->registerNode(nodeBuzzerOnPost);
+    secureServer->registerNode(nodeBuzzerOnGet);
+    secureServer->registerNode(nodeBuzzerOnOptions);
+    secureServer->registerNode(nodeBuzzerOffPost);
+    secureServer->registerNode(nodeBuzzerOffGet);
+    secureServer->registerNode(nodeBuzzerOffOptions);
+    secureServer->registerNode(nodeStatus);
+    secureServer->setDefaultNode(nodeNotFound);
+    
+    // Start HTTPS server
+    secureServer->start();
+    if (secureServer->isRunning()) {
+      Serial.println("HTTPS server started on port 443");
+    } else {
+      Serial.println("ERROR: HTTPS server failed to start!");
+    }
+  }
+  
+  // Also setup HTTP server (for local access without HTTPS)
+  httpServer.on("/", handleHttpRoot);
+  httpServer.on("/buzzer/on", HTTP_POST, handleHttpBuzzerOn);
+  httpServer.on("/buzzer/on", HTTP_GET, handleHttpBuzzerOn);
+  httpServer.on("/buzzer/off", HTTP_POST, handleHttpBuzzerOff);
+  httpServer.on("/buzzer/off", HTTP_GET, handleHttpBuzzerOff);
+  httpServer.on("/status", HTTP_GET, handleHttpStatus);
+  httpServer.on("/buzzer/on", HTTP_OPTIONS, handleHttpOptions);
+  httpServer.on("/buzzer/off", HTTP_OPTIONS, handleHttpOptions);
+  httpServer.begin();
+  Serial.println("HTTP server started on port 80");
+  
+  Serial.println("\n=== API Endpoints ===");
+  Serial.println("HTTPS (for GitHub Pages):");
+  Serial.println("  POST https://" + WiFi.localIP().toString() + "/buzzer/on");
+  Serial.println("  POST https://" + WiFi.localIP().toString() + "/buzzer/off");
+  Serial.println("  GET  https://" + WiFi.localIP().toString() + "/status");
+  Serial.println("\nHTTP (for local access):");
   Serial.println("  POST http://" + WiFi.localIP().toString() + "/buzzer/on");
-  Serial.println("  POST http://esp32-buzzer.local/buzzer/on (mDNS)");
   Serial.println("  POST http://" + WiFi.localIP().toString() + "/buzzer/off");
-  Serial.println("  POST http://esp32-buzzer.local/buzzer/off (mDNS)");
-  Serial.println("  GET  http://" + WiFi.localIP().toString() + "/status");
-  Serial.println("  GET  http://esp32-buzzer.local/status (mDNS)");
+  Serial.println("");
+  Serial.println("IMPORTANT: Before using from GitHub Pages, visit");
+  Serial.println("https://" + WiFi.localIP().toString() + "/ in your browser");
+  Serial.println("and accept the self-signed certificate!");
 }
 
 // ============================================================================
 // LOOP
 // ============================================================================
 void loop() {
-  server.handleClient();
-  // mDNS runs automatically on ESP32 - no update() needed
+  if (secureServer != nullptr) {
+    secureServer->loop();
+  }
+  httpServer.handleClient();
   delay(1);
 }
 
@@ -124,17 +206,14 @@ void initWiFi() {
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
     
-    // Initialize mDNS (Multicast DNS) for automatic IP discovery
-    // This allows access via: http://esp32-buzzer.local
+    // Initialize mDNS
     if (MDNS.begin("esp32-buzzer")) {
-      Serial.println("mDNS responder started");
-      Serial.println("Access via: http://esp32-buzzer.local");
+      Serial.println("mDNS responder started: esp32-buzzer.local");
     } else {
       Serial.println("Error setting up MDNS responder!");
     }
   } else {
     Serial.println("\nWi-Fi connection failed!");
-    Serial.println("Please check your SSID and password.");
   }
 }
 
@@ -145,194 +224,117 @@ void setBuzzer(bool state) {
   buzzerState = state;
   
   if (state) {
-    // Turn buzzer ON
-    // For PASSIVE buzzer: use tone() - generates PWM signal
-    // The LED on GPIO 2 will flicker/glow due to PWM, providing visual feedback
     tone(BUZZER_PIN, BUZZER_FREQUENCY);
-    
-    // For ACTIVE buzzer (uncomment if using active buzzer):
-    // digitalWrite(BUZZER_PIN, HIGH);  // LED will be solid ON
-    
-    Serial.println("Buzzer: ON (LED on GPIO 2 should be visible/flickering)");
+    Serial.println("Buzzer: ON");
   } else {
-    // Turn buzzer OFF
-    // For passive buzzer: noTone() stops PWM
     noTone(BUZZER_PIN);
-    
-    // Small delay to ensure PWM is fully stopped
     delay(10);
-    
-    // Reconfigure pin to ensure it's in OUTPUT mode (not PWM mode)
     pinMode(BUZZER_PIN, OUTPUT);
-    
-    // Ensure LED is OFF - explicitly set to LOW
     digitalWrite(BUZZER_PIN, LOW);
-    
-    // Additional delay to ensure the state is applied
     delay(5);
-    
-    Serial.println("Buzzer: OFF (LED on GPIO 2 should be OFF)");
+    Serial.println("Buzzer: OFF");
   }
 }
 
 // ============================================================================
-// HTTP HANDLERS
+// HTTPS HANDLERS
 // ============================================================================
-
-// Root endpoint - provides API documentation
-void handleRoot() {
-  String html = "<!DOCTYPE html><html><head><title>ESP32 Buzzer Controller</title></head><body>";
-  html += "<h1>Smart Alarm System - ESP32 Buzzer Controller</h1>";
-  html += "<p>IP Address: " + WiFi.localIP().toString() + "</p>";
-  html += "<p>Current Status: " + String(buzzerState ? "ON" : "OFF") + "</p>";
-  html += "<h2>API Endpoints:</h2>";
-  html += "<ul>";
-  html += "<li><strong>POST /buzzer/on</strong> - Turn buzzer ON</li>";
-  html += "<li><strong>POST /buzzer/off</strong> - Turn buzzer OFF</li>";
-  html += "<li><strong>GET /status</strong> - Get current status (JSON)</li>";
-  html += "</ul>";
-  html += "<h2>Test Controls:</h2>";
-  html += "<button onclick=\"fetch('/buzzer/on', {method: 'POST'}).then(() => location.reload())\">Turn ON</button> ";
-  html += "<button onclick=\"fetch('/buzzer/off', {method: 'POST'}).then(() => location.reload())\">Turn OFF</button>";
+void handleRoot(HTTPRequest * req, HTTPResponse * res) {
+  addCorsHeaders(res);
+  res->setHeader("Content-Type", "text/html");
+  
+  String html = "<!DOCTYPE html><html><head><title>ESP32 Buzzer (HTTPS)</title></head><body>";
+  html += "<h1>Smart Alarm - ESP32 Buzzer Controller</h1>";
+  html += "<p>Buzzer Status: " + String(buzzerState ? "ON" : "OFF") + "</p>";
+  html += "<p>HTTPS is enabled! You can now control this from GitHub Pages.</p>";
+  html += "<button onclick=\"fetch('/buzzer/on', {method:'POST'}).then(()=>location.reload())\">Turn ON</button> ";
+  html += "<button onclick=\"fetch('/buzzer/off', {method:'POST'}).then(()=>location.reload())\">Turn OFF</button>";
   html += "</body></html>";
-  server.send(200, "text/html", html);
+  
+  res->print(html);
 }
 
-// Turn buzzer ON
-void handleBuzzerOn() {
-  // Add CORS headers
-  server.sendHeader("Access-Control-Allow-Origin", "*");
-  server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+void handleBuzzerOn(HTTPRequest * req, HTTPResponse * res) {
+  addCorsHeaders(res);
+  res->setHeader("Content-Type", "application/json");
   
   setBuzzer(true);
-  
-  // Return JSON response
-  String response = "{\"status\":\"success\",\"buzzer\":\"on\"}";
-  server.send(200, "application/json", response);
-  Serial.println("API: Buzzer turned ON via HTTP");
+  res->print("{\"status\":\"success\",\"buzzer\":\"on\"}");
+  Serial.println("API: Buzzer ON (HTTPS)");
 }
 
-// Turn buzzer OFF
-void handleBuzzerOff() {
-  Serial.println("\n=== BUZZER OFF REQUEST RECEIVED ===");
-  Serial.print("Client IP: ");
-  Serial.println(server.client().remoteIP());
-  Serial.print("Request URI: ");
-  Serial.println(server.uri());
-  Serial.print("Request Method: ");
-  Serial.println(server.method() == HTTP_POST ? "POST" : "OTHER");
+void handleBuzzerOff(HTTPRequest * req, HTTPResponse * res) {
+  Serial.println("\n=== BUZZER OFF REQUEST (HTTPS) ===");
+  addCorsHeaders(res);
+  res->setHeader("Content-Type", "application/json");
   
-  // Add CORS headers
-  server.sendHeader("Access-Control-Allow-Origin", "*");
-  server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
-  
-  Serial.println("Calling setBuzzer(false)...");
   setBuzzer(false);
-  
-  Serial.print("Buzzer state after setBuzzer: ");
-  Serial.println(buzzerState ? "ON" : "OFF");
-  
-  // Return JSON response
-  String response = "{\"status\":\"success\",\"buzzer\":\"off\"}";
-  server.send(200, "application/json", response);
-  Serial.println("✅ Response sent: Buzzer turned OFF via HTTP");
-  Serial.println("=====================================\n");
+  res->print("{\"status\":\"success\",\"buzzer\":\"off\"}");
+  Serial.println("✅ Buzzer OFF via HTTPS");
 }
 
-// Get status
-void handleStatus() {
-  // Create JSON response
+void handleStatus(HTTPRequest * req, HTTPResponse * res) {
+  addCorsHeaders(res);
+  res->setHeader("Content-Type", "application/json");
+  
   StaticJsonDocument<200> doc;
   doc["status"] = "ok";
   doc["buzzer"] = buzzerState ? "on" : "off";
   doc["ip"] = WiFi.localIP().toString();
-  doc["rssi"] = WiFi.RSSI();
+  doc["https"] = true;
   
   String response;
   serializeJson(doc, response);
-  
-  server.send(200, "application/json", response);
+  res->print(response);
 }
 
-// Handle CORS preflight (OPTIONS) requests
-void handleOptions() {
-  server.sendHeader("Access-Control-Allow-Origin", "*");
-  server.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
-  server.send(204); // No content response for OPTIONS
+void handleOptions(HTTPRequest * req, HTTPResponse * res) {
+  addCorsHeaders(res);
+  res->setStatusCode(204);
 }
 
-// Handle 404
-void handleNotFound() {
-  String message = "Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-  
-  for (uint8_t i = 0; i < server.args(); i++) {
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-  }
-  
-  server.send(404, "text/plain", message);
+void handleNotFound(HTTPRequest * req, HTTPResponse * res) {
+  res->setStatusCode(404);
+  res->print("Not Found");
 }
 
-/*
- * ============================================================================
- * INTEGRATION GUIDE FOR WEB APP
- * ============================================================================
- * 
- * To control the buzzer from your web app, use the following endpoints:
- * 
- * 1. Turn Buzzer ON:
- *    JavaScript (fetch):
- *      fetch('http://<esp32-ip>/buzzer/on', { method: 'POST' })
- *        .then(response => response.json())
- *        .then(data => console.log(data));
- * 
- *    cURL:
- *      curl -X POST http://<esp32-ip>/buzzer/on
- * 
- * 2. Turn Buzzer OFF:
- *    JavaScript (fetch):
- *      fetch('http://<esp32-ip>/buzzer/off', { method: 'POST' })
- *        .then(response => response.json())
- *        .then(data => console.log(data));
- * 
- *    cURL:
- *      curl -X POST http://<esp32-ip>/buzzer/off
- * 
- * 3. Get Status:
- *    JavaScript (fetch):
- *      fetch('http://<esp32-ip>/status')
- *        .then(response => response.json())
- *        .then(data => {
- *          console.log('Buzzer:', data.buzzer);
- *          console.log('IP:', data.ip);
- *        });
- * 
- *    cURL:
- *      curl http://<esp32-ip>/status
- * 
- * Example: Turn off buzzer when standing is detected
- *    if (standingDetected) {
- *      fetch('http://<esp32-ip>/buzzer/off', { method: 'POST' })
- *        .then(() => console.log('Buzzer turned off'));
- *    }
- * 
- * Finding the ESP32 IP:
- * - Check Serial Monitor after upload
- * - Or use your router's admin panel
- * - Or scan your network with a tool like Advanced IP Scanner
- * 
- * TODO: Consider adding authentication if needed for security
- * TODO: Consider adding alarm schedule functionality
- * TODO: Consider adding volume control (PWM duty cycle)
- * TODO: Consider adding different buzzer patterns/sequences
- */
+// ============================================================================
+// HTTP HANDLERS (for local access)
+// ============================================================================
+void handleHttpRoot() {
+  httpServer.sendHeader("Access-Control-Allow-Origin", "*");
+  String html = "<!DOCTYPE html><html><body><h1>ESP32 Buzzer (HTTP)</h1>";
+  html += "<p>Status: " + String(buzzerState ? "ON" : "OFF") + "</p>";
+  html += "<p>For GitHub Pages access, use HTTPS on port 443</p></body></html>";
+  httpServer.send(200, "text/html", html);
+}
 
+void handleHttpBuzzerOn() {
+  httpServer.sendHeader("Access-Control-Allow-Origin", "*");
+  setBuzzer(true);
+  httpServer.send(200, "application/json", "{\"status\":\"success\",\"buzzer\":\"on\"}");
+}
+
+void handleHttpBuzzerOff() {
+  httpServer.sendHeader("Access-Control-Allow-Origin", "*");
+  setBuzzer(false);
+  httpServer.send(200, "application/json", "{\"status\":\"success\",\"buzzer\":\"off\"}");
+}
+
+void handleHttpStatus() {
+  httpServer.sendHeader("Access-Control-Allow-Origin", "*");
+  StaticJsonDocument<200> doc;
+  doc["status"] = "ok";
+  doc["buzzer"] = buzzerState ? "on" : "off";
+  doc["ip"] = WiFi.localIP().toString();
+  String response;
+  serializeJson(doc, response);
+  httpServer.send(200, "application/json", response);
+}
+
+void handleHttpOptions() {
+  httpServer.sendHeader("Access-Control-Allow-Origin", "*");
+  httpServer.sendHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  httpServer.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+  httpServer.send(204);
+}
