@@ -70,11 +70,116 @@ window.addEventListener('DOMContentLoaded', () => {
     // Initialize buzzer controller (discovers ESP32 IP)
     buzzerController.init().then(() => {
         console.log('Buzzer controller initialized');
+        updateEsp32Status(true);
+    }).catch(() => {
+        updateEsp32Status(false);
     });
+
+    // ESP32 Settings Panel Handlers
+    initEsp32Settings();
 
     // Initialize standing detection (after setting up selector)
     initStandingDetection(session);
 });
+
+/**
+ * Initialize ESP32 Settings Panel
+ */
+function initEsp32Settings() {
+    const ipInput = document.getElementById('esp32IpInput');
+    const testBtn = document.getElementById('testEsp32Btn');
+    const saveBtn = document.getElementById('saveEsp32Btn');
+
+    if (!ipInput) return; // Settings panel may not exist on mobile
+
+    // Load saved IP from localStorage
+    const savedIP = localStorage.getItem('esp32_buzzer_ip');
+    if (savedIP) {
+        ipInput.value = savedIP;
+    } else if (CONFIG.ESP32_BUZZER_IP && !CONFIG.ESP32_BUZZER_IP.endsWith('.local')) {
+        ipInput.value = CONFIG.ESP32_BUZZER_IP;
+    }
+
+    // Test button - test connection to ESP32
+    if (testBtn) {
+        testBtn.addEventListener('click', async () => {
+            const ip = ipInput.value.trim();
+            if (!ip) {
+                alert('Please enter an IP address');
+                return;
+            }
+
+            testBtn.disabled = true;
+            testBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span>';
+
+            try {
+                const response = await fetch(`http://${ip}/status`, {
+                    method: 'GET',
+                    signal: AbortSignal.timeout(3000)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'ok') {
+                        updateEsp32Status(true, ip);
+                        alert(`✅ Connected to ESP32 at ${ip}\nBuzzer: ${data.buzzer}`);
+                    }
+                } else {
+                    updateEsp32Status(false);
+                    alert('❌ ESP32 not responding');
+                }
+            } catch (error) {
+                updateEsp32Status(false);
+                alert(`❌ Could not connect to ${ip}\n\nMake sure:\n1. ESP32 is powered on\n2. ESP32 is on the same network\n3. IP address is correct`);
+            }
+
+            testBtn.disabled = false;
+            testBtn.innerHTML = '<span class="material-symbols-outlined text-sm">sync</span>';
+        });
+    }
+
+    // Save button - save IP to localStorage and update config
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            const ip = ipInput.value.trim();
+            if (!ip) {
+                alert('Please enter an IP address');
+                return;
+            }
+
+            // Save to localStorage
+            localStorage.setItem('esp32_buzzer_ip', ip);
+
+            // Update buzzer controller
+            buzzerController.buzzerIP = ip;
+            buzzerController.resolvedIP = ip;
+            buzzerController.initialized = true;
+
+            updateEsp32Status(true, ip);
+            alert(`✅ ESP32 IP saved: ${ip}`);
+        });
+    }
+}
+
+/**
+ * Update ESP32 connection status display
+ */
+function updateEsp32Status(connected, ip = null) {
+    const statusIcon = document.getElementById('esp32StatusIcon');
+    const statusText = document.getElementById('esp32StatusText');
+
+    if (!statusIcon || !statusText) return;
+
+    if (connected) {
+        statusIcon.className = 'w-2 h-2 rounded-full bg-green-500';
+        statusText.textContent = ip ? `Connected (${ip})` : 'Connected';
+        statusText.className = 'text-green-400';
+    } else {
+        statusIcon.className = 'w-2 h-2 rounded-full bg-red-500';
+        statusText.textContent = 'Not connected';
+        statusText.className = 'text-red-400';
+    }
+}
 
 let app = null;
 let standingStartTime = null;

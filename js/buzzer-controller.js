@@ -23,7 +23,21 @@ export class BuzzerController {
 
         console.log('🔌 Initializing buzzer controller...');
 
-        // Try to discover ESP32 IP
+        // First check localStorage for saved IP
+        try {
+            const savedIP = localStorage.getItem('esp32_buzzer_ip');
+            if (savedIP) {
+                console.log(`📡 Using saved IP from settings: ${savedIP}`);
+                this.buzzerIP = savedIP;
+                this.resolvedIP = savedIP;
+                this.initialized = true;
+                return;
+            }
+        } catch (e) {
+            // localStorage not available
+        }
+
+        // Try to discover ESP32 IP if no saved IP
         this.resolvedIP = await MDNSResolver.ensureConnection(this.buzzerIP);
 
         if (this.resolvedIP) {

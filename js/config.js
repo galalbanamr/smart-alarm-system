@@ -16,9 +16,11 @@ export const CONFIG = {
     // ESP32-CAM stream endpoint
     ESP32_CAM_STREAM_URL: null, // Will be constructed from ESP32_CAM_IP
 
-    // ESP32 Buzzer hostname - The app will automatically discover the IP
-    // Uses mDNS hostname and caches the discovered IP in localStorage
-    ESP32_BUZZER_IP: 'esp32-buzzer.local',
+    // ESP32 Buzzer IP Address
+    // IMPORTANT: JavaScript fetch() cannot resolve .local hostnames!
+    // Find your ESP32's IP in the Serial Monitor after boot
+    // Or visit http://esp32-buzzer.local in your browser address bar
+    ESP32_BUZZER_IP: '192.168.137.130',
 
     // Legacy: Set to null to use device camera
     // Example ESP32-CAM URLs:

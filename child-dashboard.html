@@ -464,6 +464,41 @@
               <p class="text-[10px] text-gray-500">Adjust if black shirt isn't detected. Higher = more lenient.</p>
             </div>
           </details>
+
+          <!-- ESP32 Settings Panel -->
+          <details class="mb-4">
+            <summary class="cursor-pointer text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">router</span>
+              ESP32 Buzzer Settings
+            </summary>
+            <div class="mt-4 space-y-3 p-3 bg-white/5 rounded-lg">
+              <div>
+                <label class="block text-xs text-gray-400 mb-1">ESP32 IP Address</label>
+                <div class="flex gap-2">
+                  <input type="text" id="esp32IpInput" placeholder="192.168.1.xxx"
+                    class="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-primary focus:outline-none">
+                  <button id="testEsp32Btn"
+                    class="px-3 py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors"
+                    title="Test Connection">
+                    <span class="material-symbols-outlined text-sm">sync</span>
+                  </button>
+                </div>
+              </div>
+              <div id="esp32Status" class="text-xs text-gray-400 flex items-center gap-2">
+                <span id="esp32StatusIcon" class="w-2 h-2 rounded-full bg-gray-500"></span>
+                <span id="esp32StatusText">Not connected</span>
+              </div>
+              <button id="saveEsp32Btn"
+                class="w-full py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors text-sm font-bold">
+                Save IP Address
+              </button>
+              <p class="text-[10px] text-gray-500">
+                Find your ESP32's IP in the Serial Monitor after boot, or visit
+                <a href="http://esp32-buzzer.local" target="_blank"
+                  class="text-primary hover:underline">esp32-buzzer.local</a>
+              </p>
+            </div>
+          </details>
           <button
             class="w-full py-3 rounded-lg border border-white/20 hover:bg-white/5 text-gray-400 hover:text-white transition-colors text-sm font-bold flex items-center justify-center gap-2">
             <span class="material-symbols-outlined">help</span>

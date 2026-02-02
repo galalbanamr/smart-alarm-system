@@ -1,16 +1,14 @@
 /**
- * mDNS Hostname Resolver with IP Discovery
- * Resolves .local hostnames by discovering ESP32 devices on the local network
- * Uses cached IP with automatic discovery fallback
+ * mDNS Hostname Resolver
+ * Resolves .local hostnames by calling the ESP32's /status endpoint to get the IP
  */
 
 export class MDNSResolver {
-    static CACHE_KEY = 'esp32_buzzer_ip';
     static cachedIP = null;
-    static discoveryInProgress = false;
+    static CACHE_KEY = 'esp32_buzzer_ip';
 
     /**
-     * Initialize resolver - load cached IP from localStorage
+     * Initialize - load cached IP from localStorage
      */
     static init() {
         try {
@@ -20,31 +18,19 @@ export class MDNSResolver {
                 console.log(`📡 Loaded cached ESP32 IP: ${cached}`);
             }
         } catch (e) {
-            console.warn('Could not load cached IP from localStorage');
+            // localStorage not available
         }
     }
 
     /**
-     * Get the cached IP or null if not cached
-     */
-    static getCachedIP() {
-        if (!this.cachedIP) {
-            this.init();
-        }
-        return this.cachedIP;
-    }
-
-    /**
-     * Save discovered IP to cache
+     * Save IP to cache
      */
     static cacheIP(ip) {
         this.cachedIP = ip;
         try {
             localStorage.setItem(this.CACHE_KEY, ip);
             console.log(`💾 Cached ESP32 IP: ${ip}`);
-        } catch (e) {
-            console.warn('Could not save IP to localStorage');
-        }
+        } catch (e) { }
     }
 
     /**
@@ -58,76 +44,19 @@ export class MDNSResolver {
     }
 
     /**
-     * Discover ESP32 by trying to connect to its /status endpoint
-     * Scans common IP addresses in the local subnet
-     * @param {string} baseSubnet - Base subnet to scan (e.g., '192.168.137')
-     * @returns {Promise<string|null>} - Discovered IP or null
+     * Discover ESP32 IP by calling the /status endpoint on the .local hostname
+     * The ESP32's /status response includes the IP address
+     * @param {string} hostname - The .local hostname (e.g., 'esp32-buzzer.local')
+     * @returns {Promise<string|null>} - The IP address or null if not found
      */
-    static async discoverESP32(baseSubnet = null) {
-        if (this.discoveryInProgress) {
-            console.log('Discovery already in progress...');
-            return null;
-        }
-
-        this.discoveryInProgress = true;
-        console.log('🔍 Discovering ESP32 on local network...');
-
-        // Try common subnets if not specified
-        const subnets = baseSubnet ? [baseSubnet] : [
-            '192.168.137',  // Windows Mobile Hotspot
-            '192.168.1',    // Common home router
-            '192.168.0',    // Common home router
-            '192.168.4',    // ESP32 AP mode
-            '10.0.0',       // Some networks
-        ];
-
-        // Try cached IP first
-        if (this.cachedIP) {
-            console.log(`Trying cached IP: ${this.cachedIP}`);
-            if (await this.probeIP(this.cachedIP)) {
-                console.log(`✅ Cached IP ${this.cachedIP} is still valid`);
-                this.discoveryInProgress = false;
-                return this.cachedIP;
-            } else {
-                console.log(`❌ Cached IP ${this.cachedIP} no longer responds, scanning...`);
-                this.clearCache();
-            }
-        }
-
-        // Scan subnets - try common ESP32 addresses first
-        const commonEndings = [1, 100, 101, 102, 130, 131, 150, 200, 254];
-
-        for (const subnet of subnets) {
-            console.log(`Scanning subnet ${subnet}.*`);
-
-            // Try common addresses first
-            for (const ending of commonEndings) {
-                const ip = `${subnet}.${ending}`;
-                if (await this.probeIP(ip)) {
-                    console.log(`✅ Found ESP32 at ${ip}`);
-                    this.cacheIP(ip);
-                    this.discoveryInProgress = false;
-                    return ip;
-                }
-            }
-        }
-
-        console.log('❌ Could not discover ESP32 on network');
-        this.discoveryInProgress = false;
-        return null;
-    }
-
-    /**
-     * Probe an IP address to check if ESP32 is there
-     * @param {string} ip - IP address to probe
-     * @returns {Promise<boolean>} - True if ESP32 responds
-     */
-    static async probeIP(ip) {
+    static async discoverIPFromStatus(hostname) {
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 500); // 500ms timeout
+            console.log(`🔍 Discovering ESP32 IP from ${hostname}/status...`);
 
-            const response = await fetch(`http://${ip}/status`, {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+            const response = await fetch(`http://${hostname}/status`, {
                 method: 'GET',
                 signal: controller.signal
             });
@@ -136,20 +65,50 @@ export class MDNSResolver {
 
             if (response.ok) {
                 const data = await response.json();
-                // Verify it's our ESP32 buzzer
-                if (data.status === 'ok' && 'buzzer' in data) {
-                    return true;
+                if (data.ip) {
+                    console.log(`✅ Discovered ESP32 IP: ${data.ip}`);
+                    this.cacheIP(data.ip);
+                    return data.ip;
                 }
             }
-            return false;
-        } catch (e) {
-            return false;
+        } catch (error) {
+            console.log(`⚠️ Could not reach ${hostname}/status:`, error.message);
         }
+        return null;
+    }
+
+    /**
+     * Get the resolved IP for the ESP32
+     * First tries cached IP, then discovers from /status
+     * @param {string} hostname - The configured hostname
+     * @returns {Promise<string|null>} - The resolved IP or null
+     */
+    static async resolveIP(hostname) {
+        // If not a .local hostname, return as-is
+        if (!hostname.endsWith('.local')) {
+            return hostname;
+        }
+
+        // Try cached IP first
+        if (this.cachedIP) {
+            console.log(`📡 Using cached IP: ${this.cachedIP}`);
+            return this.cachedIP;
+        }
+
+        // Discover IP from /status endpoint
+        const ip = await this.discoverIPFromStatus(hostname);
+        if (ip) {
+            return ip;
+        }
+
+        // Fallback to hostname (might work in some browsers)
+        console.log(`⚠️ Could not resolve ${hostname}, using hostname directly`);
+        return hostname;
     }
 
     /**
      * Get the actual URL to use for fetch requests
-     * Uses cached IP if available, otherwise uses hostname
+     * This is a synchronous version that uses cached IP if available
      * @param {string} hostname - The hostname or IP from config
      * @param {string} path - The path to append
      * @returns {string} - The full URL
@@ -160,22 +119,12 @@ export class MDNSResolver {
             path = path.substring(1);
         }
 
-        // If hostname is .local, try to use cached IP
-        if (hostname.endsWith('.local')) {
-            const cachedIP = this.getCachedIP();
-            if (cachedIP) {
-                console.log(`Using cached IP ${cachedIP} for ${hostname}`);
-                return `http://${cachedIP}${path ? '/' + path : ''}`;
-            }
-            // Trigger discovery in background
-            this.discoverESP32().then(ip => {
-                if (ip) {
-                    console.log(`Discovered ESP32 at ${ip} - will use for next request`);
-                }
-            });
+        // If hostname is .local, use cached IP if available
+        if (hostname.endsWith('.local') && this.cachedIP) {
+            return `http://${this.cachedIP}${path ? '/' + path : ''}`;
         }
 
-        // Return URL with original hostname (fallback)
+        // Return URL with original hostname
         return `http://${hostname}${path ? '/' + path : ''}`;
     }
 
@@ -191,31 +140,15 @@ export class MDNSResolver {
             return hostname;
         }
 
-        // Try cached IP first
-        const cachedIP = this.getCachedIP();
-        if (cachedIP && await this.probeIP(cachedIP)) {
-            console.log(`✅ ESP32 connected at ${cachedIP}`);
-            return cachedIP;
-        }
-
-        // Discover ESP32
-        const discoveredIP = await this.discoverESP32();
-        if (discoveredIP) {
-            console.log(`✅ ESP32 discovered at ${discoveredIP}`);
-            return discoveredIP;
+        // Discover IP from /status
+        const ip = await this.discoverIPFromStatus(hostname);
+        if (ip) {
+            console.log(`✅ ESP32 connected at ${ip}`);
+            return ip;
         }
 
         console.warn('⚠️ Could not connect to ESP32');
         return null;
-    }
-
-    /**
-     * Manually set the ESP32 IP address
-     * @param {string} ip - The IP address to use
-     */
-    static setManualIP(ip) {
-        this.cacheIP(ip);
-        console.log(`✅ ESP32 IP manually set to ${ip}`);
     }
 }
 
