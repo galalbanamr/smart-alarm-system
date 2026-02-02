@@ -5,6 +5,7 @@
 import { AuthManager } from './auth.js';
 import { RecordsManager } from './records.js';
 import { translationManager } from './translations.js';
+import { CONFIG } from './config.js';
 
 const authManager = new AuthManager();
 const recordsManager = new RecordsManager();
@@ -525,4 +526,403 @@ window.addEventListener('beforeunload', () => {
     if (refreshInterval) {
         clearInterval(refreshInterval);
     }
+    if (alarmCheckInterval) {
+        clearInterval(alarmCheckInterval);
+    }
 });
+
+// ============================================
+// ALARM SCHEDULER SYSTEM
+// ============================================
+
+let alarmCheckInterval = null;
+let alarmTriggeredToday = {}; // Track which child alarms have triggered today
+
+/**
+ * Initialize the Alarm System
+ * Call this after DOM is loaded
+ */
+function initAlarmSystem() {
+    console.log('⏰ Initializing alarm system...');
+
+    // Load saved settings
+    loadAlarmSettings();
+
+    // Setup UI event listeners
+    setupAlarmEventListeners();
+
+    // Start checking alarms every second
+    alarmCheckInterval = setInterval(checkAlarms, 1000);
+
+    // Reset triggered flags at midnight
+    scheduleMidnightReset();
+
+    console.log('✅ Alarm system initialized');
+}
+
+/**
+ * Load alarm settings from localStorage and populate UI
+ */
+function loadAlarmSettings() {
+    const children = authManager.getChildrenForParent(currentParent?.userId);
+    const childAlarmList = document.getElementById('childAlarmList');
+    const alarmEnabled = document.getElementById('alarmEnabled');
+
+    if (!childAlarmList) return;
+
+    // Load master alarm toggle
+    const savedEnabled = localStorage.getItem('alarm_enabled');
+    if (alarmEnabled && savedEnabled !== null) {
+        alarmEnabled.checked = savedEnabled === 'true';
+    }
+    updateAlarmStatusDisplay();
+
+    // Populate child alarm list
+    if (children.length === 0) {
+        childAlarmList.innerHTML = '<div class="text-sm text-gray-500 text-center py-4">No children registered</div>';
+        return;
+    }
+
+    childAlarmList.innerHTML = children.map(child => {
+        const savedTime = localStorage.getItem(`alarm_time_${child.id}`) || '06:30';
+        const childEnabled = localStorage.getItem(`alarm_child_enabled_${child.id}`) !== 'false';
+
+        return `
+            <div class="flex items-center justify-between p-2 bg-white/5 rounded-lg" data-child-id="${child.id}">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" 
+                           id="alarmChild_${child.id}" 
+                           class="child-alarm-checkbox rounded border-gray-600 text-primary focus:ring-primary"
+                           ${childEnabled ? 'checked' : ''}>
+                    <label for="alarmChild_${child.id}" class="text-sm text-white cursor-pointer">${child.name}</label>
+                </div>
+                <input type="time" 
+                       id="alarmTime_${child.id}" 
+                       class="alarm-time-input bg-transparent border border-white/20 rounded px-2 py-1 text-sm text-white focus:border-primary focus:outline-none"
+                       value="${savedTime}">
+            </div>
+        `;
+    }).join('');
+
+    // Update next alarm display
+    updateNextAlarmDisplay();
+}
+
+/**
+ * Setup event listeners for alarm UI
+ */
+function setupAlarmEventListeners() {
+    // Master toggle
+    const alarmEnabled = document.getElementById('alarmEnabled');
+    if (alarmEnabled) {
+        alarmEnabled.addEventListener('change', () => {
+            updateAlarmStatusDisplay();
+        });
+    }
+
+    // Save button
+    const saveAlarmBtn = document.getElementById('saveAlarmBtn');
+    if (saveAlarmBtn) {
+        saveAlarmBtn.addEventListener('click', saveAlarmSettings);
+    }
+
+    // ESP32 IP Settings
+    const ipInput = document.getElementById('esp32IpInputParent');
+    const testBtn = document.getElementById('testEsp32BtnParent');
+
+    // Load saved IP
+    if (ipInput) {
+        const savedIP = localStorage.getItem('esp32_buzzer_ip');
+        if (savedIP) {
+            ipInput.value = savedIP;
+            updateEsp32StatusParent(true, savedIP);
+        } else if (CONFIG.ESP32_BUZZER_IP && !CONFIG.ESP32_BUZZER_IP.endsWith('.local')) {
+            ipInput.value = CONFIG.ESP32_BUZZER_IP;
+        }
+    }
+
+    // Test button
+    if (testBtn) {
+        testBtn.addEventListener('click', async () => {
+            const ip = ipInput?.value?.trim();
+            if (!ip) {
+                alert('Please enter an IP address');
+                return;
+            }
+
+            testBtn.disabled = true;
+            testBtn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">sync</span>';
+
+            try {
+                const response = await fetch(`http://${ip}/status`, {
+                    method: 'GET',
+                    signal: AbortSignal.timeout(3000)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'ok') {
+                        updateEsp32StatusParent(true, ip);
+                        alert(`✅ Connected to ESP32 at ${ip}\nBuzzer: ${data.buzzer}`);
+                    }
+                } else {
+                    updateEsp32StatusParent(false);
+                    alert('❌ ESP32 not responding');
+                }
+            } catch (error) {
+                updateEsp32StatusParent(false);
+                alert(`❌ Could not connect to ${ip}\n\nMake sure:\n1. ESP32 is powered on\n2. ESP32 is on the same network\n3. IP address is correct`);
+            }
+
+            testBtn.disabled = false;
+            testBtn.innerHTML = '<span class="material-symbols-outlined text-sm">sync</span>';
+        });
+    }
+}
+
+/**
+ * Update ESP32 connection status display for parent dashboard
+ */
+function updateEsp32StatusParent(connected, ip = null) {
+    const statusIcon = document.getElementById('esp32StatusIconParent');
+    const statusText = document.getElementById('esp32StatusTextParent');
+
+    if (!statusIcon || !statusText) return;
+
+    if (connected) {
+        statusIcon.className = 'w-2 h-2 rounded-full bg-green-500';
+        statusText.textContent = ip ? `Connected (${ip})` : 'Connected';
+        statusText.className = 'text-green-400';
+    } else {
+        statusIcon.className = 'w-2 h-2 rounded-full bg-red-500';
+        statusText.textContent = 'Not connected';
+        statusText.className = 'text-red-400';
+    }
+}
+
+/**
+ * Save alarm settings to localStorage
+ */
+function saveAlarmSettings() {
+    const children = authManager.getChildrenForParent(currentParent?.userId);
+    const alarmEnabled = document.getElementById('alarmEnabled');
+
+    // Save master toggle
+    if (alarmEnabled) {
+        localStorage.setItem('alarm_enabled', alarmEnabled.checked);
+    }
+
+    // Save per-child settings
+    children.forEach(child => {
+        const timeInput = document.getElementById(`alarmTime_${child.id}`);
+        const enabledCheckbox = document.getElementById(`alarmChild_${child.id}`);
+
+        if (timeInput) {
+            localStorage.setItem(`alarm_time_${child.id}`, timeInput.value);
+        }
+        if (enabledCheckbox) {
+            localStorage.setItem(`alarm_child_enabled_${child.id}`, enabledCheckbox.checked);
+        }
+    });
+
+    // Save ESP32 IP
+    const ipInput = document.getElementById('esp32IpInputParent');
+    if (ipInput && ipInput.value.trim()) {
+        localStorage.setItem('esp32_buzzer_ip', ipInput.value.trim());
+        updateEsp32StatusParent(true, ipInput.value.trim());
+    }
+
+    updateAlarmStatusDisplay();
+    updateNextAlarmDisplay();
+
+    alert('✅ Alarm settings saved!');
+    console.log('⏰ Alarm settings saved to localStorage');
+}
+
+/**
+ * Update the alarm status display
+ */
+function updateAlarmStatusDisplay() {
+    const alarmEnabled = document.getElementById('alarmEnabled');
+    const statusIcon = document.getElementById('alarmStatusIcon');
+    const statusText = document.getElementById('alarmStatusText');
+
+    if (!statusIcon || !statusText) return;
+
+    const isEnabled = alarmEnabled?.checked;
+
+    if (isEnabled) {
+        statusIcon.className = 'size-3 rounded-full bg-green-500 animate-pulse';
+        statusText.textContent = 'Alarm Active';
+        statusText.className = 'text-sm text-green-400 font-medium';
+    } else {
+        statusIcon.className = 'size-3 rounded-full bg-gray-500';
+        statusText.textContent = 'Alarm Off';
+        statusText.className = 'text-sm text-gray-400';
+    }
+}
+
+/**
+ * Update the next alarm display
+ */
+function updateNextAlarmDisplay() {
+    const children = authManager.getChildrenForParent(currentParent?.userId);
+    const nextAlarmDisplay = document.getElementById('nextAlarmDisplay');
+    const alarmEnabled = localStorage.getItem('alarm_enabled') === 'true';
+
+    if (!nextAlarmDisplay) return;
+
+    if (!alarmEnabled) {
+        nextAlarmDisplay.textContent = 'Disabled';
+        return;
+    }
+
+    // Find earliest alarm time
+    let earliestTime = null;
+    let earliestChild = null;
+
+    children.forEach(child => {
+        const childEnabled = localStorage.getItem(`alarm_child_enabled_${child.id}`) !== 'false';
+        const timeStr = localStorage.getItem(`alarm_time_${child.id}`) || '06:30';
+
+        if (childEnabled) {
+            if (!earliestTime || timeStr < earliestTime) {
+                earliestTime = timeStr;
+                earliestChild = child.name;
+            }
+        }
+    });
+
+    if (earliestTime && earliestChild) {
+        // Format time for display
+        const [hours, minutes] = earliestTime.split(':');
+        const hour12 = parseInt(hours) % 12 || 12;
+        const ampm = parseInt(hours) < 12 ? 'AM' : 'PM';
+        nextAlarmDisplay.textContent = `${hour12}:${minutes} ${ampm} (${earliestChild})`;
+    } else {
+        nextAlarmDisplay.textContent = 'No alarms set';
+    }
+}
+
+/**
+ * Check if any alarm should trigger
+ * Called every second
+ */
+function checkAlarms() {
+    const alarmEnabled = localStorage.getItem('alarm_enabled') === 'true';
+    if (!alarmEnabled) return;
+
+    const children = authManager.getChildrenForParent(currentParent?.userId);
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const todayKey = now.toDateString();
+
+    children.forEach(child => {
+        const childEnabled = localStorage.getItem(`alarm_child_enabled_${child.id}`) !== 'false';
+        const alarmTime = localStorage.getItem(`alarm_time_${child.id}`) || '06:30';
+
+        // Check if alarm should trigger
+        if (childEnabled && currentTime === alarmTime) {
+            // Only trigger once per day per child
+            const triggeredKey = `${todayKey}_${child.id}`;
+            if (!alarmTriggeredToday[triggeredKey]) {
+                alarmTriggeredToday[triggeredKey] = true;
+                triggerAlarm(child);
+            }
+        }
+    });
+}
+
+/**
+ * Trigger the alarm for a specific child
+ */
+async function triggerAlarm(child) {
+    console.log(`🔔 ALARM TRIGGERED for ${child.name}!`);
+
+    // Get ESP32 IP from config or localStorage
+    const esp32IP = localStorage.getItem('esp32_buzzer_ip') || CONFIG.ESP32_BUZZER_IP;
+
+    if (!esp32IP || esp32IP.endsWith('.local')) {
+        console.error('❌ ESP32 IP not configured. Please set it in the settings.');
+        alert(`⚠️ Alarm triggered for ${child.name} but ESP32 IP is not configured!\n\nPlease set the ESP32 IP address in the Child Dashboard settings.`);
+        return;
+    }
+
+    const url = `http://${esp32IP}/buzzer/on`;
+    console.log(`📡 Sending buzzer ON request to: ${url}`);
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                child: child.name,
+                reason: 'scheduled_alarm'
+            }),
+            signal: AbortSignal.timeout(5000)
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log(`✅ Buzzer turned ON for ${child.name}:`, data);
+
+            // Show notification
+            showAlarmNotification(child);
+        } else {
+            console.error(`❌ Failed to turn buzzer ON: ${response.status}`);
+        }
+    } catch (error) {
+        console.error(`❌ Error triggering alarm for ${child.name}:`, error);
+        alert(`⚠️ Could not reach ESP32 buzzer!\n\nAlarm for ${child.name} failed.\nCheck that ESP32 is connected.`);
+    }
+}
+
+/**
+ * Show alarm notification in UI
+ */
+function showAlarmNotification(child) {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Update next alarm display to show active
+    const nextAlarmDisplay = document.getElementById('nextAlarmDisplay');
+    if (nextAlarmDisplay) {
+        nextAlarmDisplay.innerHTML = `<span class="text-yellow-400 animate-pulse">🔔 ${child.name}'s alarm ACTIVE</span>`;
+    }
+
+    console.log(`🔔 Alarm notification: ${child.name} at ${timeStr}`);
+}
+
+/**
+ * Schedule reset of triggered flags at midnight
+ */
+function scheduleMidnightReset() {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setDate(midnight.getDate() + 1);
+    midnight.setHours(0, 0, 0, 0);
+
+    const msUntilMidnight = midnight - now;
+
+    setTimeout(() => {
+        console.log('🌙 Midnight reset - clearing alarm triggered flags');
+        alarmTriggeredToday = {};
+        scheduleMidnightReset(); // Schedule next reset
+    }, msUntilMidnight);
+}
+
+// Initialize alarm system after DOM load
+window.addEventListener('DOMContentLoaded', () => {
+    // Wait a bit for auth to be ready
+    setTimeout(() => {
+        if (currentParent) {
+            initAlarmSystem();
+        }
+    }, 500);
+});
+
+// Export for manual testing
+window.triggerAlarm = triggerAlarm;
+window.checkAlarms = checkAlarms;

@@ -409,6 +409,24 @@
             color: rgba(255, 255, 255, 0.4);
             width: 100%;
         }
+
+        /* Alarm Time Input Styles */
+        .alarm-time-input {
+            color-scheme: dark;
+        }
+
+        .alarm-time-input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .child-alarm-checkbox {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .child-alarm-checkbox:checked {
+            background-color: #10b77f;
+        }
     </style>
 </head>
 
@@ -647,6 +665,71 @@
                                     <p class="text-lg font-bold text-white">14m</p>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Alarm Settings Widget -->
+                        <div class="glass-panel rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-yellow-400">alarm</span>
+                                <span data-i18n="alarmSettings">Alarm Settings</span>
+                            </h3>
+
+                            <!-- Alarm Toggle -->
+                            <div class="flex items-center justify-between mb-4 p-3 bg-white/5 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <span id="alarmStatusIcon" class="size-3 rounded-full bg-gray-500"></span>
+                                    <span id="alarmStatusText" class="text-sm text-gray-400">Alarm Off</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="alarmEnabled" class="sr-only peer">
+                                    <div
+                                        class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary">
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Child Alarm List -->
+                            <div id="childAlarmList" class="space-y-3 max-h-[200px] overflow-y-auto">
+                                <!-- Populated by JS -->
+                                <div class="text-sm text-gray-500 text-center py-4">Loading children...</div>
+                            </div>
+
+                            <!-- Next Alarm Display -->
+                            <div class="mt-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-yellow-400 text-sm">schedule</span>
+                                    <span class="text-xs text-yellow-400 font-medium">Next Alarm</span>
+                                </div>
+                                <p id="nextAlarmDisplay" class="text-lg font-bold text-white mt-1">--:--</p>
+                            </div>
+
+                            <!-- ESP32 IP Settings -->
+                            <div class="mt-4 p-3 bg-white/5 rounded-lg border border-white/10">
+                                <label class="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                                    <span class="material-symbols-outlined text-sm">router</span>
+                                    ESP32 Buzzer IP
+                                </label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="esp32IpInputParent" placeholder="192.168.1.xxx"
+                                        class="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-primary focus:outline-none">
+                                    <button id="testEsp32BtnParent"
+                                        class="px-3 py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors"
+                                        title="Test Connection">
+                                        <span class="material-symbols-outlined text-sm">sync</span>
+                                    </button>
+                                </div>
+                                <div id="esp32StatusParent" class="mt-2 text-xs flex items-center gap-2">
+                                    <span id="esp32StatusIconParent" class="w-2 h-2 rounded-full bg-gray-500"></span>
+                                    <span id="esp32StatusTextParent" class="text-gray-400">Not connected</span>
+                                </div>
+                            </div>
+
+                            <!-- Save Button -->
+                            <button id="saveAlarmBtn"
+                                class="w-full mt-4 py-2 bg-primary/20 text-primary rounded-lg hover:bg-primary/30 transition-colors text-sm font-bold flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-sm">save</span>
+                                <span data-i18n="saveAlarm">Save Alarm</span>
+                            </button>
                         </div>
                         <!-- Notification Feed -->
                         <div class="glass-panel rounded-xl flex-1 flex flex-col overflow-hidden min-h-[300px]">
